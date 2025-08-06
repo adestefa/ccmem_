@@ -29,17 +29,37 @@ CCMem is a TypeScript-based MCP server that uses SQLite to maintain comprehensiv
 
 ## Installation
 
-### Via NPX (Recommended)
+### Via NPX with Local Clone (Recommended for MCP Inspector)
 ```bash
-npx github:adestefa/ccmem_
-```
-
-### Local Development
-```bash
+# Clone and install dependencies
 git clone https://github.com/adestefa/ccmem_.git
 cd ccmem_
 npm install
+
+# Run the server
 npm start
+# or directly: tsx main.ts
+```
+
+### Direct NPX (Limited - dependencies may not auto-install)
+```bash
+npx github:adestefa/ccmem_
+```
+*Note: This method may require manual dependency installation*
+
+### For MCP Inspector Testing
+The most reliable method for MCP Inspector is the local clone approach:
+
+1. Clone the repository locally
+2. Install dependencies with `npm install`  
+3. In MCP Inspector, use:
+   - **Command**: `tsx`
+   - **Arguments**: `main.ts` (from within the cloned directory)
+
+### Global Installation
+```bash
+npm install -g github:adestefa/ccmem_
+ccmem
 ```
 
 ## MCP Tools Available
