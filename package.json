@@ -11,7 +11,7 @@
     "start": "tsx main.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.14.1",
+    "@modelcontextprotocol/sdk": "^1.17.1",
     "@types/better-sqlite3": "^7.6.10",
     "better-sqlite3": "^11.0.0",
     "tsx": "^4.15.7",
