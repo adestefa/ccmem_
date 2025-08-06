@@ -8,7 +8,9 @@
     "ccmem": "./main.ts"
   },
   "scripts": {
-    "start": "tsx main.ts"
+    "start": "tsx main.ts",
+    "postinstall": "echo 'CCMem dependencies installed successfully'",
+    "prestart": "echo 'Starting CCMem MCP Server...'"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.1",

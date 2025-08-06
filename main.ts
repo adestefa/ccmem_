@@ -1,5 +1,21 @@
 #!/usr/bin/env tsx
 
+// Check if we're in a valid project directory with node_modules
+import { existsSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const nodeModulesPath = join(__dirname, 'node_modules');
+
+if (!existsSync(nodeModulesPath)) {
+    console.error('❌ Dependencies not found. Please install dependencies first:');
+    console.error('   npm install');
+    console.error('   or run: npx tsx main.ts');
+    process.exit(1);
+}
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from "zod";
