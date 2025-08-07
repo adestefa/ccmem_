@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCMem Documentation - Battle-tested Prime Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
+                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
+                            800: '#1e293b', 900: '#0f172a', 950: '#020617'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+</head>
+<body class="bg-dark-900 text-white font-sans">
+    <!-- Header -->
+    <header class="bg-dark-800 border-b border-dark-700 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-brain text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">CCMem Documentation</h1>
+                        <p class="text-sm text-gray-400">Battle-tested Prime Agent v2.0</p>
+                    </div>
+                </div>
+                <a href="ccmem-dashboard.html" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-tachometer-alt mr-2"></i>View Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-6 py-8">
+        <!-- Hero Section -->
+        <div class="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl p-8 mb-12 border border-blue-500/30">
+            <h2 class="text-3xl font-bold text-white mb-4">🧠 CCMem: Your Battle-tested AI Development Partner</h2>
+            <p class="text-lg text-gray-300 mb-6">
+                Transform Claude Code into a persistent, learning development partner that remembers every battle scar, 
+                learns from failures, and never makes the same mistake twice.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-shield-alt text-blue-400 text-xl"></i>
+                    <span class="text-sm">Landmine Trauma Awareness</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-comments text-green-400 text-xl"></i>
+                    <span class="text-sm">Natural Language Processing</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-history text-purple-400 text-xl"></i>
+                    <span class="text-sm">Session Continuity</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Start -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                <i class="fas fa-rocket text-blue-400 mr-3"></i>Quick Start
+            </h2>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <h3 class="text-lg font-semibold text-white mb-4">Get Started in 3 Steps</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                        <div>
+                            <h4 class="font-semibold text-white">Initialize Your Project</h4>
+                            <pre class="bg-dark-900 rounded px-3 py-2 mt-2 text-sm"><code class="language-bash">/ccmem-init</code></pre>
+                            <p class="text-gray-400 text-sm mt-1">Auto-detects project structure and populates CCMem database</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                        <div>
+                            <h4 class="font-semibold text-white">Meet Prime Agent</h4>
+                            <pre class="bg-dark-900 rounded px-3 py-2 mt-2 text-sm"><code class="language-bash">/ccmem-prime</code></pre>
+                            <p class="text-gray-400 text-sm mt-1">Your trusted AI partner with landmine trauma awareness</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                        <div>
+                            <h4 class="font-semibold text-white">Create Your First Story</h4>
+                            <pre class="bg-dark-900 rounded px-3 py-2 mt-2 text-sm"><code class="language-bash">/ccmem-prime "Create a story about user authentication"</code></pre>
+                            <p class="text-gray-400 text-sm mt-1">Prime auto-generates tasks and gets ready to execute</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prime Agent Features -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                <i class="fas fa-brain text-purple-400 mr-3"></i>Prime Agent Capabilities
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Context Awareness -->
+                <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-eye text-blue-400 text-xl mr-3"></i>
+                        <h3 class="text-lg font-semibold text-white">Context-Aware Intelligence</h3>
+                    </div>
+                    <ul class="space-y-2 text-gray-300 text-sm">
+                        <li class="flex items-start"><i class="fas fa-check text-green-400 mr-2 mt-1"></i>Remembers where you left off</li>
+                        <li class="flex items-start"><i class="fas fa-check text-green-400 mr-2 mt-1"></i>Tracks current work in progress</li>
+                        <li class="flex items-start"><i class="fas fa-check text-green-400 mr-2 mt-1"></i>Monitors active defects</li>
+                        <li class="flex items-start"><i class="fas fa-check text-green-400 mr-2 mt-1"></i>Provides session continuity</li>
+                    </ul>
+                </div>
+
+                <!-- Trauma Awareness -->
+                <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-exclamation-triangle text-red-400 text-xl mr-3"></i>
+                        <h3 class="text-lg font-semibold text-white">Landmine Trauma System</h3>
+                    </div>
+                    <ul class="space-y-2 text-gray-300 text-sm">
+                        <li class="flex items-start"><i class="fas fa-shield-alt text-red-400 mr-2 mt-1"></i>Never suggests dangerous shortcuts</li>
+                        <li class="flex items-start"><i class="fas fa-shield-alt text-red-400 mr-2 mt-1"></i>Gets "anxious" about past failures</li>
+                        <li class="flex items-start"><i class="fas fa-shield-alt text-red-400 mr-2 mt-1"></i>Provides emotional context</li>
+                        <li class="flex items-start"><i class="fas fa-shield-alt text-red-400 mr-2 mt-1"></i>References trusted operations</li>
+                    </ul>
+                </div>
+
+                <!-- Natural Language -->
+                <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-comments text-green-400 text-xl mr-3"></i>
+                        <h3 class="text-lg font-semibold text-white">Natural Language Processing</h3>
+                    </div>
+                    <ul class="space-y-2 text-gray-300 text-sm">
+                        <li class="flex items-start"><i class="fas fa-magic text-green-400 mr-2 mt-1"></i>Creates stories from descriptions</li>
+                        <li class="flex items-start"><i class="fas fa-magic text-green-400 mr-2 mt-1"></i>Auto-generates task breakdowns</li>
+                        <li class="flex items-start"><i class="fas fa-magic text-green-400 mr-2 mt-1"></i>Understands development intent</li>
+                        <li class="flex items-start"><i class="fas fa-magic text-green-400 mr-2 mt-1"></i>Executes based on context</li>
+                    </ul>
+                </div>
+
+                <!-- Trusted Operations -->
+                <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-cogs text-orange-400 text-xl mr-3"></i>
+                        <h3 class="text-lg font-semibold text-white">Trusted Operations</h3>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-red-400">❌ python main.py</span>
+                            <span class="text-green-400">✅ ./start.sh development</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-red-400">❌ kill -9</span>
+                            <span class="text-green-400">✅ ./stop.sh</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-red-400">❌ Skip tests</span>
+                            <span class="text-green-400">✅ pytest</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slash Commands -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                <i class="fas fa-terminal text-green-400 mr-3"></i>Enhanced Slash Commands
+            </h2>
+            
+            <!-- Prime Commands -->
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700 mb-6">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                    <i class="fas fa-brain text-purple-400 mr-2"></i>Prime Agent Commands
+                </h3>
+                <div class="space-y-4">
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-blue-400 font-mono">/ccmem-prime</code>
+                        <p class="text-gray-300 text-sm mt-2">Context + landmine trauma awareness</p>
+                        <div class="bg-dark-900 rounded px-3 py-2 mt-2 text-xs text-gray-400">
+                            Shows where you left off, recent landmines, current work status
+                        </div>
+                    </div>
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-blue-400 font-mono">/ccmem-prime "Create a story about X"</code>
+                        <p class="text-gray-300 text-sm mt-2">Natural language story creation</p>
+                        <div class="bg-dark-900 rounded px-3 py-2 mt-2 text-xs text-gray-400">
+                            Auto-generates story + task breakdown + suggestions
+                        </div>
+                    </div>
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-blue-400 font-mono">/ccmem-prime "Continue task 15"</code>
+                        <p class="text-gray-300 text-sm mt-2">Resume work with context</p>
+                        <div class="bg-dark-900 rounded px-3 py-2 mt-2 text-xs text-gray-400">
+                            Loads task context with landmine awareness
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Commands -->
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700 mb-6">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                    <i class="fas fa-list text-blue-400 mr-2"></i>Project Visibility Commands
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-blue-400 font-mono">/ccmem-list</code>
+                        <p class="text-gray-300 text-sm mt-1">All stories with progress bars</p>
+                    </div>
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-blue-400 font-mono">/ccmem-list 5</code>
+                        <p class="text-gray-300 text-sm mt-1">Detailed Story #5 breakdown</p>
+                    </div>
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-blue-400 font-mono">/ccmem-list tasks</code>
+                        <p class="text-gray-300 text-sm mt-1">All tasks by status</p>
+                    </div>
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-blue-400 font-mono">/ccmem-list landmines</code>
+                        <p class="text-gray-300 text-sm mt-1">Painful failures to learn from</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lifecycle Commands -->
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                    <i class="fas fa-project-diagram text-orange-400 mr-2"></i>Development Lifecycle
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-orange-400 font-mono">/ccmem-init</code>
+                        <p class="text-gray-300 text-sm mt-1">Auto-detect and initialize project</p>
+                    </div>
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-orange-400 font-mono">/ccmem-boot &lt;storyId&gt;</code>
+                        <p class="text-gray-300 text-sm mt-1">Story-focused development context</p>
+                    </div>
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-orange-400 font-mono">/ccmem-dev &lt;taskId&gt;</code>
+                        <p class="text-gray-300 text-sm mt-1">Task-specific development setup</p>
+                    </div>
+                    <div class="bg-dark-700 rounded-lg p-4">
+                        <code class="text-orange-400 font-mono">/ccmem-qa &lt;taskId&gt;</code>
+                        <p class="text-gray-300 text-sm mt-1">Quality assurance with risk awareness</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Workflow Examples -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                <i class="fas fa-flow-chart text-yellow-400 mr-3"></i>Workflow Examples
+            </h2>
+            
+            <!-- Story Creation Workflow -->
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700 mb-6">
+                <h3 class="text-lg font-semibold text-white mb-4">📝 Natural Language Story Creation</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                        <div class="flex-1">
+                            <pre class="bg-dark-900 rounded px-3 py-2 text-sm"><code class="language-bash">/ccmem-prime "Create a story about user authentication with JWT tokens"</code></pre>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-xs">✓</div>
+                        <div class="flex-1 bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                            <p class="text-green-300 text-sm font-medium">Prime automatically creates:</p>
+                            <ul class="text-green-200 text-sm mt-2 space-y-1">
+                                <li>• Story #1: "Implement user authentication with JWT tokens"</li>
+                                <li>• Task #1: Design authentication database schema</li>
+                                <li>• Task #2: Implement login/logout API endpoints</li>
+                                <li>• Task #3: Create authentication forms UI</li>
+                                <li>• Task #4: Add session management middleware</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                        <div class="flex-1">
+                            <pre class="bg-dark-900 rounded px-3 py-2 text-sm"><code class="language-bash">/ccmem-boot 1</code></pre>
+                            <p class="text-gray-400 text-sm mt-1">Begin focused work on Story #1</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trauma Response Example -->
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <h3 class="text-lg font-semibold text-white mb-4">⚡ Landmine Trauma Response</h3>
+                <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+                    <p class="text-red-300 text-sm font-medium mb-2">Prime's Anxiety Response:</p>
+                    <div class="bg-dark-900 rounded px-3 py-2 text-sm text-red-200 font-mono">
+                        🚨 STOP! My developer PTSD is activated - I remember these painful failures...<br><br>
+                        💥 Landmine #7 - Still haunts me...<br>
+                        ⚡ Session redirect loops caused 2-hour debugging session<br><br>
+                        ⚠️ I will be EXTRA PARANOID about these areas moving forward!
+                    </div>
+                    <p class="text-gray-400 text-xs mt-2">Prime provides emotional context and specific warnings</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                <i class="fas fa-sitemap text-cyan-400 mr-3"></i>Technical Architecture
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                    <h3 class="text-lg font-semibold text-white mb-4">🔧 Core Components</h3>
+                    <ul class="space-y-2 text-gray-300 text-sm">
+                        <li class="flex items-center"><i class="fas fa-database text-blue-400 mr-2"></i>SQLite Database (better-sqlite3)</li>
+                        <li class="flex items-center"><i class="fas fa-server text-green-400 mr-2"></i>TypeScript MCP Server</li>
+                        <li class="flex items-center"><i class="fas fa-plug text-purple-400 mr-2"></i>21 MCP Tools</li>
+                        <li class="flex items-center"><i class="fas fa-terminal text-yellow-400 mr-2"></i>Custom Slash Commands</li>
+                        <li class="flex items-center"><i class="fas fa-brain text-red-400 mr-2"></i>AI-Powered Prime Agent</li>
+                    </ul>
+                </div>
+                <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                    <h3 class="text-lg font-semibold text-white mb-4">📊 Database Schema</h3>
+                    <ul class="space-y-2 text-gray-300 text-sm">
+                        <li class="flex items-center"><i class="fas fa-table text-blue-400 mr-2"></i>story - Project stories</li>
+                        <li class="flex items-center"><i class="fas fa-table text-green-400 mr-2"></i>task - Development tasks</li>
+                        <li class="flex items-center"><i class="fas fa-table text-red-400 mr-2"></i>defect - Bug tracking</li>
+                        <li class="flex items-center"><i class="fas fa-table text-orange-400 mr-2"></i>landmines - Failure memory</li>
+                        <li class="flex items-center"><i class="fas fa-table text-purple-400 mr-2"></i>history - Session tracking</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-dark-800 rounded-lg p-6 border border-dark-700 text-center">
+            <p class="text-gray-400 mb-4">
+                CCMem transforms Claude Code into a persistent, learning development partner.<br>
+                The more you use these patterns, the smarter your development process becomes.
+            </p>
+            <div class="flex justify-center space-x-4">
+                <a href="ccmem-dashboard.html" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-tachometer-alt mr-2"></i>View Dashboard
+                </a>
+                <a href="#" onclick="window.print()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-print mr-2"></i>Print Guide
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Highlight active sections in navigation
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('nav a');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (window.scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('text-blue-400');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('text-blue-400');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

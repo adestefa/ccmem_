@@ -1,0 +1,9 @@
+{
+    "mcpServers": {
+        "ccmem": {
+            "command": "npx",
+            "args": ["tsx", "/Users/corelogic/satori-dev/ccmem/main.ts"],
+            "description": "CCMem - Claude Code Memory Server for persistent development context and project memory management"
+        }
+    }
+}

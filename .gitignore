@@ -7,6 +7,8 @@ yarn-error.log*
 # Database files (generated locally)
 ccmem.db
 *.db
+ccmem-data.json
+ccmem-data.js
 
 # macOS system files
 .DS_Store
@@ -18,7 +20,10 @@ ehthumbs.db
 Thumbs.db
 
 # Claude Code configuration (user-specific)
-.claude/
+# Note: .claude/commands/ contains slash commands and should be committed
+.claude/docs/
+.claude/hooks/
+.claude/settings.json
 
 # IDE files
 .vscode/

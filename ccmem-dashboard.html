@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCMem Dashboard - Advanced Coding Master Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark-900 text-white font-sans">
+    <!-- Header -->
+    <header class="bg-dark-800 border-b border-dark-700 p-4">
+        <div class="flex items-center justify-between max-w-7xl mx-auto">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-brain text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">CCMem Dashboard</h1>
+                    <p class="text-sm text-gray-400">Advanced Coding Master Agent</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+                <div class="text-sm text-gray-400">
+                    Last updated: <span id="lastUpdated">--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-white" id="totalStories">-</div>
+                <div class="text-gray-400 text-sm">Total Projects</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-orange-500" id="inProgressTasks">-</div>
+                <div class="text-gray-400 text-sm">In Queue</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-blue-500" id="pendingTasks">-</div>
+                <div class="text-gray-400 text-sm">In Development</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-green-500" id="completedTasks">-</div>
+                <div class="text-gray-400 text-sm">Completed</div>
+            </div>
+        </div>
+
+        <!-- Project Kanban -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-white mb-6">Project Kanban</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Queue Column -->
+                <div class="bg-dark-800 rounded-lg p-4 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                        <h3 class="font-semibold text-white">Queue</h3>
+                    </div>
+                    <div id="queueColumn" class="space-y-3 min-h-32">
+                        <!-- Queue tasks will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Development Column -->
+                <div class="bg-dark-800 rounded-lg p-4 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        <h3 class="font-semibold text-white">Development</h3>
+                    </div>
+                    <div id="developmentColumn" class="space-y-3 min-h-32">
+                        <!-- Development tasks will be populated here -->
+                    </div>
+                </div>
+
+                <!-- QA Column -->
+                <div class="bg-dark-800 rounded-lg p-4 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                        <h3 class="font-semibold text-white">QA</h3>
+                    </div>
+                    <div id="qaColumn" class="space-y-3 min-h-32">
+                        <!-- QA tasks will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Done Column -->
+                <div class="bg-dark-800 rounded-lg p-4 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        <h3 class="font-semibold text-white">Done</h3>
+                    </div>
+                    <div id="doneColumn" class="space-y-3 min-h-32">
+                        <!-- Done tasks will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Details -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-white mb-6">Project Details</h2>
+            <div id="projectDetails" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Project cards will be populated here -->
+            </div>
+        </div>
+
+        <!-- Add New Story Form -->
+        <div class="bg-dark-800 rounded-lg p-6 border border-dark-700 mb-8">
+            <h3 class="text-lg font-semibold text-white mb-4">
+                <i class="fas fa-plus-circle mr-2 text-blue-500"></i>Add New Story
+            </h3>
+            <form id="addStoryForm" class="space-y-4">
+                <div>
+                    <label for="storyMessage" class="block text-sm font-medium text-gray-300 mb-2">Story Description</label>
+                    <textarea 
+                        id="storyMessage" 
+                        name="storyMessage" 
+                        rows="3" 
+                        class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        placeholder="Describe your story or feature request..."
+                        required
+                    ></textarea>
+                </div>
+                <div class="flex space-x-3">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Story
+                    </button>
+                    <button type="button" id="clearForm" class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg text-sm font-medium transition-colors">
+                        Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Landmines & Defects -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Recent Landmines -->
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <h3 class="text-lg font-semibold text-white mb-4">
+                    <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>Recent Landmines
+                </h3>
+                <div id="landminesList" class="space-y-3">
+                    <!-- Landmines will be populated here -->
+                </div>
+            </div>
+
+            <!-- Open Defects -->
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <h3 class="text-lg font-semibold text-white mb-4">
+                    <i class="fas fa-bug mr-2 text-orange-500"></i>Open Defects
+                </h3>
+                <div id="defectsList" class="space-y-3">
+                    <!-- Defects will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load CCMem data via JSONP (no CORS issues) -->
+    <script src="ccmem-data.js"></script>
+
+    <script>
+        class CCMemDashboard {
+            constructor() {
+                this.data = null;
+                this.init();
+            }
+
+            async init() {
+                this.bindEvents();
+                await this.loadData();
+            }
+
+            bindEvents() {
+                document.getElementById('refreshBtn').addEventListener('click', () => this.refresh());
+                document.getElementById('addStoryForm').addEventListener('submit', (e) => this.handleAddStory(e));
+                document.getElementById('clearForm').addEventListener('click', () => this.clearForm());
+            }
+
+            async loadData() {
+                try {
+                    // First check if data is already loaded via JSONP
+                    if (window.ccmemData) {
+                        console.log('✅ Loading data from JSONP');
+                        this.data = window.ccmemData;
+                        this.renderDashboard();
+                        return;
+                    }
+
+                    // Try to load from API (when running via server)
+                    try {
+                        const response = await fetch('/api/data');
+                        if (response.ok) {
+                            console.log('✅ Loading data from API');
+                            this.data = await response.json();
+                            this.renderDashboard();
+                            return;
+                        }
+                    } catch (error) {
+                        console.log('API not available, trying fallback...');
+                    }
+
+                    // Final fallback
+                    console.error('No data available');
+                    this.showError('CCMem data not found. Please run: python3 ccmem_export.py');
+                    
+                } catch (error) {
+                    console.error('Error loading CCMem data:', error);
+                    this.showError('Failed to load CCMem data');
+                }
+            }
+
+            renderDashboard() {
+                this.renderMetrics();
+                this.renderKanban();
+                this.renderProjectDetails();
+                this.renderLandmines();
+                this.renderDefects();
+                this.updateLastUpdated();
+            }
+
+            renderMetrics() {
+                const metrics = this.data.metrics;
+                document.getElementById('totalStories').textContent = metrics.totalStories;
+                document.getElementById('inProgressTasks').textContent = metrics.inProgressTasks;
+                document.getElementById('pendingTasks').textContent = metrics.pendingTasks;
+                document.getElementById('completedTasks').textContent = metrics.completedTasks;
+            }
+
+            renderKanban() {
+                const queueColumn = document.getElementById('queueColumn');
+                const developmentColumn = document.getElementById('developmentColumn');
+                const qaColumn = document.getElementById('qaColumn');
+                const doneColumn = document.getElementById('doneColumn');
+
+                // Clear columns
+                [queueColumn, developmentColumn, qaColumn, doneColumn].forEach(col => col.innerHTML = '');
+
+                // Sort tasks and group by status
+                this.data.tasks.forEach(task => {
+                    const taskCard = this.createTaskCard(task);
+                    
+                    switch (task.status) {
+                        case 'pending':
+                            queueColumn.appendChild(taskCard);
+                            break;
+                        case 'in_progress':
+                            developmentColumn.appendChild(taskCard);
+                            break;
+                        case 'completed':
+                            doneColumn.appendChild(taskCard);
+                            break;
+                    }
+                });
+
+                // Show empty state if no tasks in columns
+                [
+                    { col: queueColumn, text: 'No tasks in queue' },
+                    { col: developmentColumn, text: 'No tasks in development' },
+                    { col: qaColumn, text: 'No tasks in QA' },
+                    { col: doneColumn, text: 'No tasks completed' }
+                ].forEach(({ col, text }) => {
+                    if (col.children.length === 0) {
+                        col.innerHTML = `<div class="text-gray-500 text-sm text-center py-4">${text}</div>`;
+                    }
+                });
+            }
+
+            createTaskCard(task) {
+                const div = document.createElement('div');
+                const statusColor = {
+                    'pending': 'border-orange-500',
+                    'in_progress': 'border-blue-500',
+                    'completed': 'border-green-500'
+                }[task.status] || 'border-gray-500';
+
+                div.className = `bg-dark-700 rounded-lg p-3 border-l-4 ${statusColor}`;
+                div.innerHTML = `
+                    <div class="text-sm font-medium text-white mb-1">${this.truncate(task.description, 40)}</div>
+                    <div class="text-xs text-gray-400">${task.storyMessage || 'No story'}</div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-xs bg-dark-600 px-2 py-1 rounded">${task.status.replace('_', ' ').toUpperCase()}</span>
+                        <span class="text-xs text-gray-500">Task #${task.id}</span>
+                    </div>
+                `;
+                return div;
+            }
+
+            renderProjectDetails() {
+                const container = document.getElementById('projectDetails');
+                container.innerHTML = '';
+
+                this.data.stories.forEach(story => {
+                    const storyCard = document.createElement('div');
+                    const statusColors = {
+                        'pending': 'text-orange-500',
+                        'in_progress': 'text-blue-500',
+                        'completed': 'text-green-500'
+                    };
+
+                    storyCard.className = 'bg-dark-700 rounded-lg p-4 border border-dark-600';
+                    storyCard.innerHTML = `
+                        <div class="flex items-start justify-between mb-3">
+                            <h4 class="font-semibold text-white text-sm">${this.truncate(story.message, 30)}</h4>
+                            <span class="text-xs px-2 py-1 rounded bg-green-900 text-green-400">ACTIVE</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-3">${story.message}</p>
+                        
+                        <div class="mb-3">
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Progress</span>
+                                <span>${story.taskCounts?.total || 0}/1 tasks</span>
+                            </div>
+                            <div class="w-full bg-dark-600 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                                     style="width: ${story.progress || 0}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <div class="text-lg font-bold text-orange-500">${story.taskCounts?.pending || 0}</div>
+                                <div class="text-xs text-gray-400">Queue</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-lg font-bold text-blue-500">${story.taskCounts?.inProgress || 0}</div>
+                                <div class="text-xs text-gray-400">Dev</div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(storyCard);
+                });
+
+                if (this.data.stories.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500 text-center py-8">No stories yet. Add your first story above!</div>';
+                }
+            }
+
+            renderLandmines() {
+                const container = document.getElementById('landminesList');
+                const landmines = this.data.landmines.slice(0, 5); // Show latest 5
+
+                if (landmines.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500 text-sm">No landmines recorded</div>';
+                    return;
+                }
+
+                container.innerHTML = landmines.map(landmine => `
+                    <div class="bg-dark-700 rounded-lg p-3 border-l-4 border-red-500">
+                        <div class="text-sm font-medium text-red-400 mb-1">Landmine #${landmine.id}</div>
+                        <div class="text-xs text-gray-300 mb-2">${this.truncate(landmine.errorContext, 60)}</div>
+                        <div class="text-xs text-gray-500">${landmine.taskDescription || 'Unknown task'}</div>
+                    </div>
+                `).join('');
+            }
+
+            renderDefects() {
+                const container = document.getElementById('defectsList');
+                const openDefects = this.data.defects.filter(d => d.status === 'open');
+
+                if (openDefects.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500 text-sm">No open defects</div>';
+                    return;
+                }
+
+                container.innerHTML = openDefects.map(defect => `
+                    <div class="bg-dark-700 rounded-lg p-3 border-l-4 border-orange-500">
+                        <div class="text-sm font-medium text-orange-400 mb-1">Defect #${defect.id}</div>
+                        <div class="text-xs text-gray-300 mb-2">${this.truncate(defect.description, 60)}</div>
+                        <div class="text-xs text-gray-500">${defect.storyMessage || 'Unknown story'}</div>
+                    </div>
+                `).join('');
+            }
+
+            updateLastUpdated() {
+                if (this.data.lastUpdated) {
+                    const date = new Date(this.data.lastUpdated);
+                    document.getElementById('lastUpdated').textContent = date.toLocaleTimeString();
+                }
+            }
+
+            async refresh() {
+                const btn = document.getElementById('refreshBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Refreshing...';
+                btn.disabled = true;
+
+                try {
+                    // Try to refresh via API first
+                    try {
+                        await fetch('/api/refresh', { method: 'POST' });
+                        console.log('✅ Refreshed via API');
+                    } catch (apiError) {
+                        console.log('API not available, please run: python3 ccmem_export.py');
+                    }
+                    
+                    // For JSONP refresh, we need to reload the script
+                    this.reloadJSONPData();
+                    
+                } catch (error) {
+                    console.error('Refresh error:', error);
+                    this.showError('Failed to refresh data. Try running: python3 ccmem_export.py');
+                }
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+
+            reloadJSONPData() {
+                // Remove old script
+                const oldScript = document.querySelector('script[src="ccmem-data.js"]');
+                if (oldScript) {
+                    oldScript.remove();
+                }
+
+                // Clear cached data
+                delete window.ccmemData;
+
+                // Load new script with cache busting
+                const script = document.createElement('script');
+                script.src = `ccmem-data.js?v=${Date.now()}`;
+                script.onload = () => {
+                    console.log('✅ JSONP data reloaded');
+                    this.loadData();
+                };
+                script.onerror = () => {
+                    console.error('❌ Failed to reload JSONP data');
+                    this.showError('Failed to reload data. Run: python3 ccmem_export.py');
+                };
+                document.head.appendChild(script);
+            }
+
+            async handleAddStory(e) {
+                e.preventDefault();
+                const storyMessage = document.getElementById('storyMessage').value.trim();
+                
+                if (!storyMessage) return;
+
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+                submitBtn.disabled = true;
+
+                try {
+                    // Try API first (works with ccmem_server.py)
+                    try {
+                        const response = await fetch('/api/stories', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                message: storyMessage,
+                                auto_generate_tasks: true 
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            await this.loadData(); // Refresh dashboard
+                            this.clearForm();
+                            this.showSuccess('Story added successfully with auto-generated tasks!');
+                        } else {
+                            throw new Error('API request failed');
+                        }
+                    } catch (apiError) {
+                        // Fallback: Show instructions for manual CCMem usage
+                        const instructions = `Story ready to add! Use CCMem Prime Agent:
+                        
+/ccmem-prime "${storyMessage}"
+
+This will:
+1. Create the story in CCMem database
+2. Auto-generate logical task breakdown  
+3. Get ready for development with /ccmem-boot
+
+Then refresh this dashboard to see the results!`;
+                        
+                        alert(instructions);
+                        this.clearForm();
+                    }
+                } catch (error) {
+                    console.error('Add story error:', error);
+                    this.showError('Failed to add story');
+                }
+
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+
+            clearForm() {
+                document.getElementById('storyMessage').value = '';
+            }
+
+            truncate(text, length) {
+                if (!text) return '';
+                return text.length > length ? text.substring(0, length) + '...' : text;
+            }
+
+            showError(message) {
+                // Simple error display - could be enhanced with toast notifications
+                console.error(message);
+                this.showNotification(message, 'error');
+            }
+
+            showSuccess(message) {
+                console.log(message);
+                this.showNotification(message, 'success');
+            }
+
+            showNotification(message, type = 'info') {
+                // Simple toast notification
+                const toast = document.createElement('div');
+                const bgColor = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-blue-600';
+                
+                toast.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300`;
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => document.body.removeChild(toast), 300);
+                }, 3000);
+            }
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new CCMemDashboard();
+        });
+    </script>
+</body>
+</html>
