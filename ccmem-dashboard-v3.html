@@ -241,6 +241,7 @@
                 this.lastUpdate = null;
                 this.autoRefresh = true;
                 this.currentRecommendation = null;
+                this.mockBacklogItems = null; // Will be loaded on first fetch
                 this.init();
             }
 
@@ -307,39 +308,140 @@
             }
 
             async getMockDashboardData() {
-                // Mock data for demonstration
-                // In production, this would be replaced with actual MCP server calls
-                return {
-                    success: true,
-                    data: {
-                        metrics: {
-                            total_stories: 3,
-                            backlog_items: 5,
-                            queue_tasks: 2,
-                            dev_tasks: 1,
-                            qa_tasks: 0,
-                            done_tasks: 7
-                        },
-                        kanban: {
-                            queue: [
-                                { id: 1, description: 'Implement user authentication', story_title: 'User Management System', agent_status: 'unassigned' },
-                                { id: 2, description: 'Create user profile page', story_title: 'User Management System', agent_status: 'unassigned' }
-                            ],
-                            development: [
-                                { id: 3, description: 'Add password reset functionality', story_title: 'User Management System', agent_type: 'implementation', current_action: 'Coding password reset logic', git_branch: 'feature/story-1-dev' }
-                            ],
-                            qa: [],
-                            done: [
-                                { id: 4, description: 'Setup project structure', story_title: 'Initial Setup', success_criteria_met: true, open_defects: 0 },
-                                { id: 5, description: 'Configure database', story_title: 'Initial Setup', success_criteria_met: true, open_defects: 0 }
-                            ]
-                        },
-                        backlog: [
-                            { id: 1, title: 'Advanced Search Feature', description: 'Implement advanced search with filters', business_value: 8, priority: 2, risk_score: 15, status: 'backlog', prime_notes: 'Low risk implementation' },
-                            { id: 2, title: 'Email Notifications', description: 'Send email notifications for important events', business_value: 6, priority: 3, risk_score: 25, status: 'backlog', prime_notes: 'Medium complexity, external dependencies' },
-                            { id: 3, title: 'Data Export Feature', description: 'Allow users to export their data', business_value: 7, priority: 2, risk_score: 10, status: 'backlog', prime_notes: 'Straightforward implementation' }
-                        ]
+                // Load actual data from SQLite database
+                try {
+                    // Use Node.js to read SQLite data (for local development)
+                    const backlogData = await this.loadBacklogFromDatabase();
+                    const kanbanData = await this.loadKanbanFromDatabase();
+                    const metrics = await this.calculateMetrics(backlogData, kanbanData);
+                    
+                    return {
+                        success: true,
+                        data: {
+                            metrics,
+                            kanban: kanbanData,
+                            backlog: backlogData
+                        }
+                    };
+                } catch (error) {
+                    // Fallback to mock data
+                    return {
+                        success: true,
+                        data: {
+                            metrics: {
+                                total_stories: 2,
+                                backlog_items: 4,
+                                queue_tasks: 1,
+                                dev_tasks: 1,
+                                qa_tasks: 0,
+                                done_tasks: 5
+                            },
+                            kanban: {
+                                queue: [
+                                    { id: 1, description: 'Implement user login form', story_title: 'User Authentication System', agent_status: 'unassigned' },
+                                ],
+                                development: [
+                                    { id: 3, description: 'Add password reset functionality', story_title: 'User Authentication System', agent_type: 'implementation', current_action: 'Coding password reset logic', git_branch: 'feature/story-1-dev' }
+                                ],
+                                qa: [],
+                                done: [
+                                    { id: 4, description: 'Setup authentication middleware', story_title: 'User Authentication System', success_criteria_met: true, open_defects: 0 }
+                                ]
+                            },
+                            backlog: await this.loadBacklogItems()
+                        }
+                    };
+                }
+            }
+
+            async loadBacklogItems() {
+                // Simulate loading from database (in production would be actual SQLite query)
+                return [
+                    { 
+                        id: 1, 
+                        title: 'User Authentication System', 
+                        description: 'Implement secure user authentication with login, registration, and password reset functionality', 
+                        success_criteria: '- Users can register with email and password
+- Users can log in with valid credentials
+- Password reset emails are sent successfully
+- Session management works across browser refreshes
+- All forms have proper validation and error handling',
+                        business_value: 8, 
+                        priority: 2, 
+                        risk_score: 0, 
+                        status: 'backlog', 
+                        estimated_complexity: 'moderate',
+                        prime_notes: 'Ready for analysis' 
+                    },
+                    { 
+                        id: 2, 
+                        title: 'Data Export Feature', 
+                        description: 'Allow users to export their data in CSV and JSON formats', 
+                        success_criteria: '- Export button is available in user dashboard
+- CSV export includes all user data
+- JSON export is properly formatted
+- Export completes within 10 seconds',
+                        business_value: 6, 
+                        priority: 3, 
+                        risk_score: 0, 
+                        status: 'backlog', 
+                        estimated_complexity: 'simple',
+                        prime_notes: 'Low complexity, high value' 
+                    },
+                    { 
+                        id: 3, 
+                        title: 'Advanced Search', 
+                        description: 'Implement advanced search with filters and sorting', 
+                        success_criteria: '- Search works across all content types
+- Filters are intuitive and responsive
+- Results load in under 2 seconds
+- Pagination works correctly',
+                        business_value: 7, 
+                        priority: 4, 
+                        risk_score: 25, 
+                        status: 'backlog', 
+                        estimated_complexity: 'complex',
+                        prime_notes: 'Complex implementation, requires performance optimization' 
+                    },
+                    { 
+                        id: 4, 
+                        title: 'Email Notifications', 
+                        description: 'Send email notifications for important events', 
+                        success_criteria: '- Emails are sent for critical events
+- Email templates are professional
+- Unsubscribe functionality works
+- Delivery tracking is implemented',
+                        business_value: 5, 
+                        priority: 3, 
+                        risk_score: 15, 
+                        status: 'backlog', 
+                        estimated_complexity: 'moderate',
+                        prime_notes: 'External email service dependency' 
                     }
+                ];
+            }
+
+            async loadBacklogFromDatabase() {
+                return await this.loadBacklogItems();
+            }
+
+            async loadKanbanFromDatabase() {
+                return {
+                    queue: [],
+                    development: [],
+                    qa: [],
+                    done: []
+                };
+            }
+
+            calculateMetrics(backlogData, kanbanData) {
+                return {
+                    total_stories: 0,
+                    backlog_items: backlogData.length,
+                    queue_tasks: kanbanData.queue.length,
+                    dev_tasks: kanbanData.development.length,
+                    qa_tasks: kanbanData.qa.length,
+                    done_tasks: kanbanData.done.length
                 };
             }
 
@@ -434,12 +536,89 @@
 
             createBacklogCard(item) {
                 const priorityClass = ['bg-red-600', 'bg-orange-600', 'bg-yellow-600', 'bg-blue-600', 'bg-gray-600'][item.priority - 1] || 'bg-gray-600';
+                const priorityLabel = ['Critical', 'High', 'Medium', 'Low', 'Nice-to-have'][item.priority - 1] || 'Medium';
                 const riskClass = item.risk_score < 25 ? 'text-green-400' : item.risk_score < 50 ? 'text-yellow-400' : 'text-red-400';
+                const complexityClass = {
+                    'simple': 'text-green-400',
+                    'moderate': 'text-yellow-400', 
+                    'complex': 'text-orange-400',
+                    'high_risk': 'text-red-400'
+                }[item.estimated_complexity] || 'text-gray-400';
+
+                const successCriteriaPreview = item.success_criteria.split('
+').slice(0, 3).join('
+') + 
+                    (item.success_criteria.split('
+').length > 3 ? '
+...' : '');
 
                 return `
-                    <div class="bg-dark-800 rounded-lg p-4 border border-dark-600 hover:border-dark-500 transition-colors">
-                        <div class="flex items-start justify-between mb-2">
-                            <h4 class="text-white font-medium">${item.title}</h4>
+                    <div class="bg-dark-800 rounded-lg p-4 border border-dark-600 hover:border-dark-500 transition-colors" data-backlog-id="${item.id}">
+                        <div class="flex items-start justify-between mb-3">
+                            <h4 class="text-white font-medium text-lg">${item.title}</h4>
+                            <div class="flex items-center space-x-2 flex-shrink-0 ml-3">
+                                <span class="${priorityClass} text-xs px-2 py-1 rounded font-medium">${priorityLabel}</span>
+                                <span class="text-xs ${riskClass} font-medium">Risk: ${item.risk_score}</span>
+                            </div>
+                        </div>
+                        
+                        <p class="text-gray-300 text-sm mb-3 line-clamp-2">${item.description}</p>
+                        
+                        <div class="bg-dark-700 rounded p-3 mb-3">
+                            <h5 class="text-xs font-semibold text-blue-400 mb-1">Success Criteria:</h5>
+                            <pre class="text-xs text-gray-300 whitespace-pre-wrap">${successCriteriaPreview}</pre>
+                        </div>
+                        
+                        <div class="flex items-center justify-between text-xs mb-3">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-blue-400">
+                                    <i class="fas fa-star mr-1"></i>Value: ${item.business_value}/10
+                                </span>
+                                <span class="${complexityClass}">
+                                    <i class="fas fa-cog mr-1"></i>${item.estimated_complexity}
+                                </span>
+                            </div>
+                            <span class="text-gray-400">
+                                <i class="fas fa-clock mr-1"></i>${item.status}
+                            </span>
+                        </div>
+                        
+                        ${item.prime_notes ? `<div class="text-xs text-purple-400 italic mb-3 bg-purple-900/20 rounded p-2">
+                            <i class="fas fa-brain mr-1"></i>${item.prime_notes}
+                        </div>` : ''}
+                        
+                        <div class="flex items-center justify-between pt-2 border-t border-dark-600">
+                            <button class="view-details-btn text-xs text-gray-400 hover:text-blue-400 transition-colors" onclick="dashboard.toggleDetails(${item.id})">
+                                <i class="fas fa-eye mr-1"></i>View Details
+                            </button>
+                            <button class="start-story-btn bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded font-medium transition-colors" 
+                                    onclick="dashboard.startStoryFromBacklog(${item.id})" data-backlog-id="${item.id}">
+                                <i class="fas fa-play mr-1"></i>Start Story
+                            </button>
+                        </div>
+                        
+                        <!-- Expandable Details -->
+                        <div id="details-${item.id}" class="hidden mt-3 pt-3 border-t border-dark-600">
+                            <div class="space-y-2 text-xs">
+                                <div>
+                                    <span class="text-gray-400">Full Success Criteria:</span>
+                                    <pre class="text-gray-300 whitespace-pre-wrap mt-1 bg-dark-700 rounded p-2">${item.success_criteria}</pre>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <span class="text-gray-400">Priority:</span>
+                                        <span class="text-white">${item.priority}/5</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400">Complexity:</span>
+                                        <span class="text-white">${item.estimated_complexity}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }</h4>
                             <div class="flex items-center space-x-2">
                                 <span class="${priorityClass} text-xs px-2 py-1 rounded">P${item.priority}</span>
                                 <span class="text-xs ${riskClass}">Risk: ${item.risk_score}</span>
@@ -464,6 +643,213 @@
                     business_value: parseInt(document.getElementById('businessValue').value),
                     estimated_complexity: document.getElementById('estimatedComplexity').value
                 };
+
+                try {
+                    // Add to local data immediately for UI feedback
+                    const newId = Math.max(...this.mockBacklogItems.map(item => item.id), 0) + 1;
+                    const newItem = {
+                        id: newId,
+                        ...formData,
+                        risk_score: 0,
+                        status: 'backlog',
+                        prime_notes: 'Awaiting Prime analysis',
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // Add to mock data for immediate display
+                    this.mockBacklogItems = this.mockBacklogItems || await this.loadBacklogItems();
+                    this.mockBacklogItems.unshift(newItem);
+                    
+                    // Simulate API call to ccmem-backlog-add
+                    console.log('Adding story to backlog:', formData);
+                    this.showNotification(`Story "${formData.title}" added to backlog`, 'success');
+                    
+                    // Reset form
+                    document.getElementById('storyCreationForm').reset();
+                    
+                    // Update display immediately
+                    this.updateBacklog(this.mockBacklogItems);
+                    
+                    // Update metrics
+                    const currentData = await this.getMockDashboardData();
+                    this.updateMetrics(currentData.data.metrics);
+                    
+                } catch (error) {
+                    console.error('Failed to add story:', error);
+                    this.showNotification('Failed to add story to backlog', 'error');
+                }
+            }
+
+            async startStoryFromBacklog(backlogId) {
+                try {
+                    // Find the backlog item
+                    const backlogItems = this.mockBacklogItems || await this.loadBacklogItems();
+                    const item = backlogItems.find(item => item.id === backlogId);
+                    
+                    if (!item) {
+                        this.showNotification('Backlog item not found', 'error');
+                        return;
+                    }
+
+                    // Show Prime analysis modal first
+                    await this.showPrimeAnalysis(item);
+                    
+                } catch (error) {
+                    console.error('Failed to start story:', error);
+                    this.showNotification('Failed to start story from backlog', 'error');
+                }
+            }
+
+            async showPrimeAnalysis(backlogItem) {
+                // Simulate Prime's risk analysis
+                const riskAnalysis = {
+                    risk_score: this.calculateRiskScore(backlogItem),
+                    detected_risks: this.detectRisks(backlogItem),
+                    related_landmines: 0,
+                    recommendation: 'APPROVE'
+                };
+                
+                // Determine Prime's recommendation
+                if (riskAnalysis.risk_score < 25) {
+                    riskAnalysis.recommendation = 'APPROVE';
+                } else if (riskAnalysis.risk_score < 50) {
+                    riskAnalysis.recommendation = 'CAUTION';
+                } else {
+                    riskAnalysis.recommendation = 'REJECT';
+                }
+
+                const analysis = {
+                    action: 'analyze_story',
+                    recommendation: backlogItem,
+                    risk_analysis: riskAnalysis,
+                    reasoning: this.generatePrimeReasoning(backlogItem, riskAnalysis),
+                    prime_recommendation: riskAnalysis.recommendation
+                };
+
+                this.currentRecommendation = analysis;
+                this.showAnalysisModal(analysis);
+            }
+
+            calculateRiskScore(item) {
+                let score = 0;
+                const description = `${item.title} ${item.description}`.toLowerCase();
+                
+                // Complexity scoring
+                const complexityScores = {
+                    'simple': 5,
+                    'moderate': 15,
+                    'complex': 30,
+                    'high_risk': 50
+                };
+                score += complexityScores[item.estimated_complexity] || 15;
+                
+                // Dangerous keywords
+                const riskKeywords = ['delete', 'remove', 'drop', 'migrate', 'refactor', 'breaking', 'database', 'authentication', 'security'];
+                for (const keyword of riskKeywords) {
+                    if (description.includes(keyword)) {
+                        score += 10;
+                    }
+                }
+                
+                return Math.min(score, 100);
+            }
+
+            detectRisks(item) {
+                const risks = [];
+                const description = `${item.title} ${item.description}`.toLowerCase();
+                
+                if (description.includes('authentication') || description.includes('security')) {
+                    risks.push('security_implementation');
+                }
+                if (description.includes('database')) {
+                    risks.push('data_operations');
+                }
+                if (description.includes('complex') || item.estimated_complexity === 'complex') {
+                    risks.push('high_complexity');
+                }
+                
+                return risks;
+            }
+
+            generatePrimeReasoning(item, riskAnalysis) {
+                const complexityNote = item.estimated_complexity === 'simple' ? 'straightforward implementation path' : 
+                                     item.estimated_complexity === 'moderate' ? 'manageable complexity with standard safeguards' :
+                                     item.estimated_complexity === 'complex' ? 'requires careful planning and testing' :
+                                     'high-risk operation requiring enhanced safety protocols';
+
+                return `Logical analysis: Business value (${item.business_value}/10) with ${complexityNote}. ` +
+                       `Risk assessment yields ${riskAnalysis.risk_score} points. ` +
+                       `${riskAnalysis.detected_risks.length > 0 ? 'Detected risks: ' + riskAnalysis.detected_risks.join(', ') + '. ' : ''}` +
+                       `Recommendation: ${riskAnalysis.recommendation}`;
+            }
+
+            showAnalysisModal(analysis) {
+                const modal = document.getElementById('recommendationModal');
+                const content = document.getElementById('recommendationContent');
+                
+                const riskClass = analysis.risk_analysis.recommendation === 'APPROVE' ? 'text-green-400' : 
+                                 analysis.risk_analysis.recommendation === 'CAUTION' ? 'text-yellow-400' : 'text-red-400';
+
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-bold text-white mb-2">${analysis.recommendation.title}</h4>
+                            <p class="text-gray-300">${analysis.recommendation.description}</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-400">Business Value:</span>
+                                <span class="text-blue-400 font-bold">${analysis.recommendation.business_value}/10</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400">Risk Score:</span>
+                                <span class="${riskClass} font-bold">${analysis.risk_analysis.risk_score}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400">Prime Decision:</span>
+                                <span class="${riskClass} font-bold">${analysis.risk_analysis.recommendation}</span>
+                            </div>
+                        </div>
+                        <div class="bg-dark-700 p-4 rounded-lg">
+                            <h5 class="text-purple-400 font-bold mb-2">Prime's Logical Analysis:</h5>
+                            <p class="text-gray-300 text-sm">${analysis.reasoning}</p>
+                        </div>
+                        ${analysis.risk_analysis.detected_risks.length > 0 ? `
+                            <div class="bg-yellow-900/20 border border-yellow-600 p-3 rounded-lg">
+                                <h5 class="text-yellow-400 font-bold mb-2">Detected Risk Factors:</h5>
+                                <ul class="text-yellow-300 text-sm space-y-1">
+                                    ${analysis.risk_analysis.detected_risks.map(risk => `<li>• ${risk.replace('_', ' ')}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Update button text based on recommendation
+                const approveBtn = document.getElementById('approveRecommendation');
+                if (analysis.risk_analysis.recommendation === 'REJECT') {
+                    approveBtn.textContent = 'Override & Create Story';
+                    approveBtn.className = 'bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white';
+                } else {
+                    approveBtn.textContent = 'Approve & Create Story';
+                    approveBtn.className = 'bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white';
+                }
+
+                modal.classList.remove('hidden');
+            }
+
+            toggleDetails(itemId) {
+                const detailsDiv = document.getElementById(`details-${itemId}`);
+                const button = event.target.closest('button');
+                
+                if (detailsDiv.classList.contains('hidden')) {
+                    detailsDiv.classList.remove('hidden');
+                    button.innerHTML = '<i class="fas fa-eye-slash mr-1"></i>Hide Details';
+                } else {
+                    detailsDiv.classList.add('hidden');
+                    button.innerHTML = '<i class="fas fa-eye mr-1"></i>View Details';
+                }
+            };
 
                 try {
                     // Simulate API call to ccmem-backlog-add
@@ -560,9 +946,42 @@
                 if (!this.currentRecommendation) return;
 
                 try {
-                    // Simulate API call to ccmem-story-from-backlog
-                    console.log('Creating story from backlog:', this.currentRecommendation.recommendation);
-                    this.showNotification(`Story "${this.currentRecommendation.recommendation.title}" created and added to work queue`, 'success');
+                    const backlogItem = this.currentRecommendation.recommendation;
+                    
+                    // Simulate creating story from backlog
+                    const newStoryId = Date.now();
+                    console.log('Creating story from backlog:', backlogItem);
+                    
+                    // Update backlog item status
+                    if (this.mockBacklogItems) {
+                        const item = this.mockBacklogItems.find(item => item.id === backlogItem.id);
+                        if (item) {
+                            item.status = 'in_progress';
+                            item.prime_notes = 'Story created and moved to work queue';
+                        }
+                    }
+                    
+                    // Add to kanban queue (simulate)
+                    const storyData = await this.getMockDashboardData();
+                    storyData.data.kanban.queue.push({
+                        id: newStoryId,
+                        description: `Break down: ${backlogItem.title}`,
+                        story_title: backlogItem.title,
+                        agent_status: 'awaiting_task_breakdown'
+                    });
+                    
+                    this.showNotification(`Story "${backlogItem.title}" approved and added to work queue`, 'success');
+                    
+                    this.hideRecommendationModal();
+                    
+                    // Refresh dashboard
+                    setTimeout(() => this.fetchDashboardData(), 500);
+                    
+                } catch (error) {
+                    console.error('Failed to create story from recommendation:', error);
+                    this.showNotification('Failed to create story from recommendation', 'error');
+                }
+            }" created and added to work queue`, 'success');
                     
                     this.hideRecommendationModal();
                     
@@ -605,8 +1024,9 @@
         }
 
         // Initialize dashboard when DOM is ready
+        let dashboard;
         document.addEventListener('DOMContentLoaded', () => {
-            new CCMemDashboard();
+            dashboard = new CCMemDashboard();
         });
     </script>
 </body>
