@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCMem v3.0 Dashboard - Prime Swarm Orchestration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark-900 text-white font-sans">
+    <!-- Header -->
+    <header class="bg-dark-800 border-b border-dark-700 p-4 sticky top-0 z-10">
+        <div class="flex items-center justify-between max-w-7xl mx-auto">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-brain text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">CCMem v3.0</h1>
+                    <p class="text-sm text-gray-400">Prime Swarm Orchestration Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs text-gray-400">Live</span>
+                </div>
+                <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i id="refreshIcon" class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+                <div class="text-sm text-gray-400">
+                    Last updated: <span id="lastUpdated">--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Story Creation Form -->
+        <div class="bg-dark-800 rounded-lg p-6 border border-dark-700 mb-8">
+            <h3 class="text-lg font-semibold text-white mb-4">
+                <i class="fas fa-plus-circle mr-2 text-green-500"></i>Create New Story
+            </h3>
+            <form id="storyCreationForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Story Title</label>
+                    <input type="text" id="storyTitle" required 
+                           class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                    <textarea id="storyDescription" required rows="3"
+                              class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Success Criteria</label>
+                    <textarea id="successCriteria" required rows="2" 
+                              placeholder="Define measurable acceptance criteria..."
+                              class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"></textarea>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Priority</label>
+                        <select id="storyPriority" class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white">
+                            <option value="1">Critical</option>
+                            <option value="2">High</option>
+                            <option value="3" selected>Medium</option>
+                            <option value="4">Low</option>
+                            <option value="5">Nice-to-have</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Business Value (1-10)</label>
+                        <input type="number" id="businessValue" min="1" max="10" value="5"
+                               class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Estimated Complexity</label>
+                        <select id="estimatedComplexity" class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white">
+                            <option value="simple">Simple</option>
+                            <option value="moderate" selected>Moderate</option>
+                            <option value="complex">Complex</option>
+                            <option value="high_risk">High Risk</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" 
+                        class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg text-white font-medium">
+                    Add to Backlog
+                </button>
+            </form>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-white" id="totalStories">-</div>
+                <div class="text-gray-400 text-sm">Active Stories</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-purple-500" id="backlogItems">-</div>
+                <div class="text-gray-400 text-sm">Backlog</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-orange-500" id="queueTasks">-</div>
+                <div class="text-gray-400 text-sm">In Queue</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-blue-500" id="devTasks">-</div>
+                <div class="text-gray-400 text-sm">In Development</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-green-500" id="completedTasks">-</div>
+                <div class="text-gray-400 text-sm">Completed</div>
+            </div>
+        </div>
+
+        <!-- Backlog Management Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-white">Story Backlog</h2>
+                <button id="primeRecommendBtn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm font-medium">
+                    <i class="fas fa-brain mr-2"></i>Prime Recommend
+                </button>
+            </div>
+            <div id="backlogContainer" class="space-y-3">
+                <!-- Backlog items populated here -->
+            </div>
+        </div>
+
+        <!-- Project Kanban -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-white mb-6">Development Kanban</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Queue Column -->
+                <div class="bg-dark-800 rounded-lg p-4 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                        <h3 class="font-semibold text-white">Queue</h3>
+                        <span id="queueCount" class="ml-auto text-xs bg-orange-600 px-2 py-1 rounded">0</span>
+                    </div>
+                    <div id="queueColumn" class="space-y-3 min-h-32">
+                        <div class="text-gray-500 text-center py-8">No tasks in queue</div>
+                    </div>
+                </div>
+
+                <!-- Development Column -->
+                <div class="bg-dark-800 rounded-lg p-4 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        <h3 class="font-semibold text-white">Development</h3>
+                        <span id="devCount" class="ml-auto text-xs bg-blue-600 px-2 py-1 rounded">0</span>
+                    </div>
+                    <div id="developmentColumn" class="space-y-3 min-h-32">
+                        <div class="text-gray-500 text-center py-8">No tasks in development</div>
+                    </div>
+                </div>
+
+                <!-- QA Column -->
+                <div class="bg-dark-800 rounded-lg p-4 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                        <h3 class="font-semibold text-white">QA</h3>
+                        <span id="qaCount" class="ml-auto text-xs bg-purple-600 px-2 py-1 rounded">0</span>
+                    </div>
+                    <div id="qaColumn" class="space-y-3 min-h-32">
+                        <div class="text-gray-500 text-center py-8">No tasks in QA</div>
+                    </div>
+                </div>
+
+                <!-- Done Column -->
+                <div class="bg-dark-800 rounded-lg p-4 border border-dark-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        <h3 class="font-semibold text-white">Done</h3>
+                        <span id="doneCount" class="ml-auto text-xs bg-green-600 px-2 py-1 rounded">0</span>
+                    </div>
+                    <div id="doneColumn" class="space-y-3 min-h-32">
+                        <div class="text-gray-500 text-center py-8">No completed tasks</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prime Recommendation Modal -->
+        <div id="recommendationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700 max-w-2xl w-full mx-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white">
+                        <i class="fas fa-brain mr-2 text-purple-500"></i>Prime's Recommendation
+                    </h3>
+                    <button id="closeModalBtn" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="recommendationContent">
+                    <!-- Recommendation content populated here -->
+                </div>
+                <div class="flex space-x-3 mt-6">
+                    <button id="approveRecommendation" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white">
+                        Approve & Create Story
+                    </button>
+                    <button id="rejectRecommendation" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white">
+                        Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CCMemDashboard {
+            constructor() {
+                this.refreshInterval = 5000; // 5 seconds
+                this.isRefreshing = false;
+                this.lastUpdate = null;
+                this.autoRefresh = true;
+                this.currentRecommendation = null;
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.fetchDashboardData();
+                this.startAutoRefresh();
+            }
+
+            setupEventListeners() {
+                // Refresh button
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    this.fetchDashboardData();
+                });
+
+                // Story creation form
+                document.getElementById('storyCreationForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleStoryCreation();
+                });
+
+                // Prime recommendation
+                document.getElementById('primeRecommendBtn').addEventListener('click', () => {
+                    this.getPrimeRecommendation();
+                });
+
+                // Modal controls
+                document.getElementById('closeModalBtn').addEventListener('click', () => {
+                    this.hideRecommendationModal();
+                });
+
+                document.getElementById('approveRecommendation').addEventListener('click', () => {
+                    this.approveRecommendation();
+                });
+
+                document.getElementById('rejectRecommendation').addEventListener('click', () => {
+                    this.hideRecommendationModal();
+                });
+            }
+
+            async fetchDashboardData(refreshType = 'full') {
+                if (this.isRefreshing) return;
+                
+                this.isRefreshing = true;
+                const refreshIcon = document.getElementById('refreshIcon');
+                refreshIcon.classList.add('fa-spin');
+
+                try {
+                    // Since we're running in a browser, we'll simulate the API call
+                    // In a real implementation, this would call the MCP server endpoint
+                    const mockData = await this.getMockDashboardData();
+                    this.updateDashboard(mockData, refreshType);
+                    this.lastUpdate = new Date().toISOString();
+                    
+                } catch (error) {
+                    console.error('Dashboard refresh failed:', error);
+                    this.showNotification('Dashboard refresh failed', 'error');
+                } finally {
+                    this.isRefreshing = false;
+                    refreshIcon.classList.remove('fa-spin');
+                    document.getElementById('lastUpdated').textContent = 
+                        new Date(this.lastUpdate).toLocaleTimeString();
+                }
+            }
+
+            async getMockDashboardData() {
+                // Mock data for demonstration
+                // In production, this would be replaced with actual MCP server calls
+                return {
+                    success: true,
+                    data: {
+                        metrics: {
+                            total_stories: 3,
+                            backlog_items: 5,
+                            queue_tasks: 2,
+                            dev_tasks: 1,
+                            qa_tasks: 0,
+                            done_tasks: 7
+                        },
+                        kanban: {
+                            queue: [
+                                { id: 1, description: 'Implement user authentication', story_title: 'User Management System', agent_status: 'unassigned' },
+                                { id: 2, description: 'Create user profile page', story_title: 'User Management System', agent_status: 'unassigned' }
+                            ],
+                            development: [
+                                { id: 3, description: 'Add password reset functionality', story_title: 'User Management System', agent_type: 'implementation', current_action: 'Coding password reset logic', git_branch: 'feature/story-1-dev' }
+                            ],
+                            qa: [],
+                            done: [
+                                { id: 4, description: 'Setup project structure', story_title: 'Initial Setup', success_criteria_met: true, open_defects: 0 },
+                                { id: 5, description: 'Configure database', story_title: 'Initial Setup', success_criteria_met: true, open_defects: 0 }
+                            ]
+                        },
+                        backlog: [
+                            { id: 1, title: 'Advanced Search Feature', description: 'Implement advanced search with filters', business_value: 8, priority: 2, risk_score: 15, status: 'backlog', prime_notes: 'Low risk implementation' },
+                            { id: 2, title: 'Email Notifications', description: 'Send email notifications for important events', business_value: 6, priority: 3, risk_score: 25, status: 'backlog', prime_notes: 'Medium complexity, external dependencies' },
+                            { id: 3, title: 'Data Export Feature', description: 'Allow users to export their data', business_value: 7, priority: 2, risk_score: 10, status: 'backlog', prime_notes: 'Straightforward implementation' }
+                        ]
+                    }
+                };
+            }
+
+            updateDashboard(response, refreshType) {
+                if (!response.success) {
+                    this.showNotification('Failed to load dashboard data', 'error');
+                    return;
+                }
+
+                const data = response.data;
+
+                if (refreshType === 'full' || refreshType === 'metrics') {
+                    this.updateMetrics(data.metrics);
+                }
+
+                if (refreshType === 'full' || refreshType === 'kanban') {
+                    this.updateKanban(data.kanban);
+                }
+
+                if (refreshType === 'full' || refreshType === 'backlog') {
+                    this.updateBacklog(data.backlog);
+                }
+            }
+
+            updateMetrics(metrics) {
+                document.getElementById('totalStories').textContent = metrics.total_stories || 0;
+                document.getElementById('backlogItems').textContent = metrics.backlog_items || 0;
+                document.getElementById('queueTasks').textContent = metrics.queue_tasks || 0;
+                document.getElementById('devTasks').textContent = metrics.dev_tasks || 0;
+                document.getElementById('completedTasks').textContent = metrics.done_tasks || 0;
+            }
+
+            updateKanban(kanban) {
+                this.updateKanbanColumn('queueColumn', 'queueCount', kanban.queue || [], 'queue');
+                this.updateKanbanColumn('developmentColumn', 'devCount', kanban.development || [], 'dev');
+                this.updateKanbanColumn('qaColumn', 'qaCount', kanban.qa || [], 'qa');
+                this.updateKanbanColumn('doneColumn', 'doneCount', kanban.done || [], 'done');
+            }
+
+            updateKanbanColumn(columnId, countId, tasks, type) {
+                const column = document.getElementById(columnId);
+                const count = document.getElementById(countId);
+                
+                count.textContent = tasks.length;
+
+                if (tasks.length === 0) {
+                    column.innerHTML = `<div class="text-gray-500 text-center py-8">No tasks in ${type}</div>`;
+                    return;
+                }
+
+                column.innerHTML = tasks.map(task => this.createTaskCard(task, type)).join('');
+            }
+
+            createTaskCard(task, type) {
+                let statusInfo = '';
+                let statusClass = 'bg-gray-600';
+
+                if (type === 'dev' && task.agent_type) {
+                    statusInfo = `<div class="text-xs text-blue-400 mt-1">${task.agent_type}: ${task.current_action || 'Working...'}</div>`;
+                    statusClass = 'bg-blue-600';
+                } else if (type === 'qa' && task.qa_result) {
+                    statusInfo = `<div class="text-xs text-purple-400 mt-1">QA: ${task.qa_result}</div>`;
+                    statusClass = 'bg-purple-600';
+                } else if (type === 'done') {
+                    const checkMark = task.success_criteria_met ? '✓' : '⚠';
+                    statusInfo = `<div class="text-xs text-green-400 mt-1">${checkMark} Criteria met: ${task.success_criteria_met}</div>`;
+                    statusClass = task.success_criteria_met ? 'bg-green-600' : 'bg-yellow-600';
+                }
+
+                return `
+                    <div class="bg-dark-700 rounded-lg p-3 border border-dark-600">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="text-sm font-medium text-white">${task.description}</div>
+                            <div class="w-2 h-2 ${statusClass} rounded-full flex-shrink-0 ml-2 mt-1"></div>
+                        </div>
+                        <div class="text-xs text-gray-400">${task.story_title}</div>
+                        ${statusInfo}
+                    </div>
+                `;
+            }
+
+            updateBacklog(backlogItems) {
+                const container = document.getElementById('backlogContainer');
+                
+                if (!backlogItems || backlogItems.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500 text-center py-8">No items in backlog</div>';
+                    return;
+                }
+
+                container.innerHTML = backlogItems.map(item => this.createBacklogCard(item)).join('');
+            }
+
+            createBacklogCard(item) {
+                const priorityClass = ['bg-red-600', 'bg-orange-600', 'bg-yellow-600', 'bg-blue-600', 'bg-gray-600'][item.priority - 1] || 'bg-gray-600';
+                const riskClass = item.risk_score < 25 ? 'text-green-400' : item.risk_score < 50 ? 'text-yellow-400' : 'text-red-400';
+
+                return `
+                    <div class="bg-dark-800 rounded-lg p-4 border border-dark-600 hover:border-dark-500 transition-colors">
+                        <div class="flex items-start justify-between mb-2">
+                            <h4 class="text-white font-medium">${item.title}</h4>
+                            <div class="flex items-center space-x-2">
+                                <span class="${priorityClass} text-xs px-2 py-1 rounded">P${item.priority}</span>
+                                <span class="text-xs ${riskClass}">Risk: ${item.risk_score}</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-300 text-sm mb-2">${item.description}</p>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-blue-400">Value: ${item.business_value}/10</span>
+                            <span class="text-gray-400">${item.status}</span>
+                        </div>
+                        ${item.prime_notes ? `<div class="text-xs text-purple-400 mt-2 italic">${item.prime_notes}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            async handleStoryCreation() {
+                const formData = {
+                    title: document.getElementById('storyTitle').value,
+                    description: document.getElementById('storyDescription').value,
+                    success_criteria: document.getElementById('successCriteria').value,
+                    priority: parseInt(document.getElementById('storyPriority').value),
+                    business_value: parseInt(document.getElementById('businessValue').value),
+                    estimated_complexity: document.getElementById('estimatedComplexity').value
+                };
+
+                try {
+                    // Simulate API call to ccmem-backlog-add
+                    console.log('Adding story to backlog:', formData);
+                    this.showNotification(`Story "${formData.title}" added to backlog`, 'success');
+                    
+                    // Reset form
+                    document.getElementById('storyCreationForm').reset();
+                    
+                    // Refresh backlog
+                    setTimeout(() => this.fetchDashboardData('backlog'), 500);
+                    
+                } catch (error) {
+                    console.error('Failed to add story:', error);
+                    this.showNotification('Failed to add story to backlog', 'error');
+                }
+            }
+
+            async getPrimeRecommendation() {
+                try {
+                    // Simulate API call to ccmem-backlog-groom
+                    const mockRecommendation = {
+                        action: 'recommend_story',
+                        recommendation: {
+                            id: 3,
+                            title: 'Data Export Feature',
+                            description: 'Allow users to export their data in various formats',
+                            business_value: 7,
+                            risk_score: 10,
+                            weighted_score: 12
+                        },
+                        risk_analysis: {
+                            risk_score: 10,
+                            detected_risks: [],
+                            related_landmines: 0,
+                            recommendation: 'APPROVE'
+                        },
+                        reasoning: 'Based on business value (7/10) and estimated complexity (simple), this story provides optimal value-to-risk ratio.',
+                        prime_recommendation: 'APPROVE'
+                    };
+
+                    this.currentRecommendation = mockRecommendation;
+                    this.showRecommendationModal(mockRecommendation);
+                    
+                } catch (error) {
+                    console.error('Failed to get Prime recommendation:', error);
+                    this.showNotification('Failed to get Prime recommendation', 'error');
+                }
+            }
+
+            showRecommendationModal(recommendation) {
+                const modal = document.getElementById('recommendationModal');
+                const content = document.getElementById('recommendationContent');
+                
+                const riskClass = recommendation.risk_analysis.recommendation === 'APPROVE' ? 'text-green-400' : 
+                                 recommendation.risk_analysis.recommendation === 'CAUTION' ? 'text-yellow-400' : 'text-red-400';
+
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-bold text-white mb-2">${recommendation.recommendation.title}</h4>
+                            <p class="text-gray-300">${recommendation.recommendation.description}</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-400">Business Value:</span>
+                                <span class="text-blue-400 font-bold">${recommendation.recommendation.business_value}/10</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400">Risk Score:</span>
+                                <span class="${riskClass} font-bold">${recommendation.risk_analysis.risk_score}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400">Prime Decision:</span>
+                                <span class="${riskClass} font-bold">${recommendation.risk_analysis.recommendation}</span>
+                            </div>
+                        </div>
+                        <div class="bg-dark-700 p-4 rounded-lg">
+                            <h5 class="text-purple-400 font-bold mb-2">Prime's Analysis:</h5>
+                            <p class="text-gray-300 text-sm">${recommendation.reasoning}</p>
+                        </div>
+                    </div>
+                `;
+
+                modal.classList.remove('hidden');
+            }
+
+            hideRecommendationModal() {
+                document.getElementById('recommendationModal').classList.add('hidden');
+                this.currentRecommendation = null;
+            }
+
+            async approveRecommendation() {
+                if (!this.currentRecommendation) return;
+
+                try {
+                    // Simulate API call to ccmem-story-from-backlog
+                    console.log('Creating story from backlog:', this.currentRecommendation.recommendation);
+                    this.showNotification(`Story "${this.currentRecommendation.recommendation.title}" created and added to work queue`, 'success');
+                    
+                    this.hideRecommendationModal();
+                    
+                    // Refresh dashboard
+                    setTimeout(() => this.fetchDashboardData(), 500);
+                    
+                } catch (error) {
+                    console.error('Failed to create story from recommendation:', error);
+                    this.showNotification('Failed to create story from recommendation', 'error');
+                }
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                const typeClasses = {
+                    success: 'bg-green-600 border-green-500',
+                    error: 'bg-red-600 border-red-500',
+                    info: 'bg-blue-600 border-blue-500',
+                    warning: 'bg-yellow-600 border-yellow-500'
+                };
+
+                notification.className = `fixed top-4 right-4 ${typeClasses[type]} border text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+
+            startAutoRefresh() {
+                if (this.autoRefresh) {
+                    setInterval(() => {
+                        this.fetchDashboardData('metrics');
+                    }, this.refreshInterval);
+                }
+            }
+        }
+
+        // Initialize dashboard when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            new CCMemDashboard();
+        });
+    </script>
+</body>
+</html>
