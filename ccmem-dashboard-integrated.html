@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCMem v3.0 Dashboard - Integrated with SQLite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sortable-ghost {
+            opacity: 0.4;
+        }
+        .sortable-chosen {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        .drag-handle {
+            cursor: grab;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        .priority-dropdown {
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-white font-sans">
+    <!-- Header -->
+    <header class="bg-dark-800 border-b border-dark-700 p-4 sticky top-0 z-10">
+        <div class="flex items-center justify-between max-w-7xl mx-auto">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-brain text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">CCMem v3.0 Integrated</h1>
+                    <p class="text-sm text-gray-400">Real SQLite Database Integration</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div id="connectionStatus" class="w-2 h-2 bg-gray-500 rounded-full"></div>
+                    <span class="text-xs text-gray-400">Database</span>
+                </div>
+                <button id="saveChanges" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors hidden">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+                <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i id="refreshIcon" class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+                <div class="text-sm text-gray-400">
+                    Last updated: <span id="lastUpdated">--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Story Creation Form -->
+        <div class="bg-dark-800 rounded-lg p-6 border border-dark-700 mb-8">
+            <h3 class="text-lg font-semibold text-white mb-4">
+                <i class="fas fa-plus-circle mr-2 text-green-500"></i>Create New Story
+            </h3>
+            <form id="storyCreationForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Story Title</label>
+                    <input type="text" id="storyTitle" required 
+                           class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                    <textarea id="storyDescription" required rows="3"
+                              class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Success Criteria</label>
+                    <textarea id="successCriteria" required rows="2" 
+                              placeholder="Define measurable acceptance criteria..."
+                              class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"></textarea>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Priority</label>
+                        <select id="storyPriority" class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white">
+                            <option value="1">Critical</option>
+                            <option value="2">High</option>
+                            <option value="3" selected>Medium</option>
+                            <option value="4">Low</option>
+                            <option value="5">Nice-to-have</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Business Value (1-10)</label>
+                        <input type="number" id="businessValue" min="1" max="10" value="5"
+                               class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Estimated Complexity</label>
+                        <select id="estimatedComplexity" class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white">
+                            <option value="simple">Simple</option>
+                            <option value="moderate" selected>Moderate</option>
+                            <option value="complex">Complex</option>
+                            <option value="high_risk">High Risk</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" 
+                        class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg text-white font-medium">
+                    Add to Backlog
+                </button>
+            </form>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-white" id="totalStories">-</div>
+                <div class="text-gray-400 text-sm">Active Stories</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-purple-500" id="backlogItems">-</div>
+                <div class="text-gray-400 text-sm">Backlog</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-orange-500" id="queueTasks">-</div>
+                <div class="text-gray-400 text-sm">In Queue</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-blue-500" id="devTasks">-</div>
+                <div class="text-gray-400 text-sm">In Development</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-green-500" id="completedTasks">-</div>
+                <div class="text-gray-400 text-sm">Completed</div>
+            </div>
+        </div>
+
+        <!-- Backlog Management Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-white">Story Backlog - Drag to Reorder</h2>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-400">
+                        <i class="fas fa-arrows-alt mr-1"></i>Drag cards to reorder
+                    </div>
+                    <button id="primeNotifications" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm font-medium relative">
+                        <i class="fas fa-brain mr-2"></i>Prime Notifications
+                        <span id="notificationBadge" class="hidden absolute -top-2 -right-2 bg-red-500 text-xs px-1.5 py-0.5 rounded-full">0</span>
+                    </button>
+                </div>
+            </div>
+            <div id="backlogContainer" class="space-y-3">
+                <!-- Backlog items populated here -->
+            </div>
+        </div>
+
+        <!-- Prime Notifications Modal -->
+        <div id="notificationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white">
+                        <i class="fas fa-brain mr-2 text-purple-500"></i>Prime Notifications
+                    </h3>
+                    <button id="closeNotificationModal" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="notificationContent">
+                    <!-- Notifications populated here -->
+                </div>
+                <div class="flex space-x-3 mt-6">
+                    <button id="acknowledgeAll" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white">
+                        Acknowledge All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prime Analysis Modal -->
+        <div id="analysisModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700 max-w-2xl w-full mx-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white">
+                        <i class="fas fa-brain mr-2 text-purple-500"></i>Prime's Analysis
+                    </h3>
+                    <button id="closeAnalysisModal" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="analysisContent">
+                    <!-- Analysis content populated here -->
+                </div>
+                <div class="flex space-x-3 mt-6">
+                    <button id="approveStory" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white">
+                        Approve & Create Story
+                    </button>
+                    <button id="rejectStory" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white">
+                        Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CCMemIntegratedDashboard {
+            constructor() {
+                this.apiBase = 'http://localhost:3001/api';
+                this.refreshInterval = 5000; // 5 seconds
+                this.isRefreshing = false;
+                this.lastUpdate = null;
+                this.currentAnalysisItem = null;
+                this.hasUnsavedChanges = false;
+                this.sortable = null;
+                
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.checkConnection();
+                await this.loadDashboardData();
+                this.setupDragAndDrop();
+                this.startAutoRefresh();
+            }
+
+            async checkConnection() {
+                try {
+                    const response = await fetch(`${this.apiBase}/dashboard`);
+                    const statusIndicator = document.getElementById('connectionStatus');
+                    
+                    if (response.ok) {
+                        statusIndicator.className = 'w-2 h-2 bg-green-500 rounded-full animate-pulse';
+                        console.log('✅ Connected to CCMem Database Server');
+                    } else {
+                        throw new Error('Server responded with error');
+                    }
+                } catch (error) {
+                    const statusIndicator = document.getElementById('connectionStatus');
+                    statusIndicator.className = 'w-2 h-2 bg-red-500 rounded-full';
+                    console.error('❌ Failed to connect to database server:', error);
+                    this.showNotification('Database connection failed. Start server with: node dashboard-server.js', 'error');
+                }
+            }
+
+            setupEventListeners() {
+                // Refresh button
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    this.loadDashboardData();
+                });
+
+                // Story creation form
+                document.getElementById('storyCreationForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleStoryCreation();
+                });
+
+                // Save changes button
+                document.getElementById('saveChanges').addEventListener('click', () => {
+                    this.saveAllChanges();
+                });
+
+                // Prime notifications
+                document.getElementById('primeNotifications').addEventListener('click', () => {
+                    this.showPrimeNotifications();
+                });
+
+                // Modal controls
+                document.getElementById('closeNotificationModal').addEventListener('click', () => {
+                    this.hideNotificationModal();
+                });
+
+                document.getElementById('closeAnalysisModal').addEventListener('click', () => {
+                    this.hideAnalysisModal();
+                });
+
+                document.getElementById('acknowledgeAll').addEventListener('click', () => {
+                    this.acknowledgeAllNotifications();
+                });
+
+                document.getElementById('approveStory').addEventListener('click', () => {
+                    this.approveStoryFromBacklog();
+                });
+
+                document.getElementById('rejectStory').addEventListener('click', () => {
+                    this.hideAnalysisModal();
+                });
+            }
+
+            setupDragAndDrop() {
+                const container = document.getElementById('backlogContainer');
+                
+                this.sortable = Sortable.create(container, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    handle: '.drag-handle',
+                    
+                    onEnd: async (evt) => {
+                        if (evt.oldIndex !== evt.newIndex) {
+                            await this.handleReorder();
+                        }
+                    }
+                });
+            }
+
+            async loadDashboardData() {
+                if (this.isRefreshing) return;
+                
+                this.isRefreshing = true;
+                const refreshIcon = document.getElementById('refreshIcon');
+                refreshIcon.classList.add('fa-spin');
+
+                try {
+                    const response = await fetch(`${this.apiBase}/dashboard`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.updateDashboard(result.data);
+                        this.lastUpdate = new Date().toISOString();
+                        await this.loadPrimeNotifications();
+                    } else {
+                        throw new Error(result.error || 'Failed to load data');
+                    }
+                    
+                } catch (error) {
+                    console.error('Dashboard refresh failed:', error);
+                    this.showNotification('Failed to refresh dashboard data', 'error');
+                } finally {
+                    this.isRefreshing = false;
+                    refreshIcon.classList.remove('fa-spin');
+                    document.getElementById('lastUpdated').textContent = 
+                        new Date(this.lastUpdate).toLocaleTimeString();
+                }
+            }
+
+            updateDashboard(data) {
+                if (data.metrics) {
+                    this.updateMetrics(data.metrics);
+                }
+                
+                if (data.backlog) {
+                    this.updateBacklog(data.backlog);
+                }
+            }
+
+            updateMetrics(metrics) {
+                document.getElementById('totalStories').textContent = metrics.total_stories || 0;
+                document.getElementById('backlogItems').textContent = metrics.backlog_items || 0;
+                document.getElementById('queueTasks').textContent = metrics.queue_tasks || 0;
+                document.getElementById('devTasks').textContent = metrics.dev_tasks || 0;
+                document.getElementById('completedTasks').textContent = metrics.done_tasks || 0;
+            }
+
+            updateBacklog(backlogItems) {
+                const container = document.getElementById('backlogContainer');
+                
+                if (!backlogItems || backlogItems.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500 text-center py-8">No items in backlog</div>';
+                    return;
+                }
+
+                container.innerHTML = backlogItems.map(item => this.createBacklogCard(item)).join('');
+            }
+
+            createBacklogCard(item) {
+                const priorityClasses = ['bg-red-600', 'bg-orange-600', 'bg-yellow-600', 'bg-blue-600', 'bg-gray-600'];
+                const priorityLabels = ['Critical', 'High', 'Medium', 'Low', 'Nice-to-have'];
+                const priorityClass = priorityClasses[item.priority - 1] || 'bg-gray-600';
+                const priorityLabel = priorityLabels[item.priority - 1] || 'Medium';
+                
+                const riskClass = (item.risk_score || 0) < 25 ? 'text-green-400' : 
+                                 (item.risk_score || 0) < 50 ? 'text-yellow-400' : 'text-red-400';
+                
+                const complexityClass = {
+                    'simple': 'text-green-400',
+                    'moderate': 'text-yellow-400', 
+                    'complex': 'text-orange-400',
+                    'high_risk': 'text-red-400'
+                }[item.estimated_complexity] || 'text-gray-400';
+
+                return `
+                    <div class="bg-dark-800 rounded-lg p-4 border border-dark-600 hover:border-dark-500 transition-colors" data-backlog-id="${item.id}">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <div class="drag-handle text-gray-400 hover:text-white mt-1">
+                                    <i class="fas fa-grip-vertical"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-white font-medium text-lg">${item.title}</h4>
+                                    <p class="text-gray-300 text-sm mt-1">${item.description}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 flex-shrink-0">
+                                <select class="priority-dropdown bg-dark-700 border border-dark-600 rounded px-2 py-1 text-xs text-white" 
+                                        onchange="dashboard.updatePriority(${item.id}, this.value)" value="${item.priority}">
+                                    <option value="1" ${item.priority == 1 ? 'selected' : ''}>Critical</option>
+                                    <option value="2" ${item.priority == 2 ? 'selected' : ''}>High</option>
+                                    <option value="3" ${item.priority == 3 ? 'selected' : ''}>Medium</option>
+                                    <option value="4" ${item.priority == 4 ? 'selected' : ''}>Low</option>
+                                    <option value="5" ${item.priority == 5 ? 'selected' : ''}>Nice-to-have</option>
+                                </select>
+                                <span class="text-xs ${riskClass} font-medium">Risk: ${item.risk_score || 0}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-dark-700 rounded p-3 mb-3">
+                            <h5 class="text-xs font-semibold text-blue-400 mb-1">Success Criteria:</h5>
+                            <pre class="text-xs text-gray-300 whitespace-pre-wrap">${item.success_criteria.split('\n').slice(0, 2).join('\n')}${item.success_criteria.split('\n').length > 2 ? '\n...' : ''}</pre>
+                        </div>
+                        
+                        <div class="flex items-center justify-between text-xs mb-3">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-blue-400">
+                                    <i class="fas fa-star mr-1"></i>Value: ${item.business_value}/10
+                                </span>
+                                <span class="${complexityClass}">
+                                    <i class="fas fa-cog mr-1"></i>${item.estimated_complexity}
+                                </span>
+                            </div>
+                            <span class="text-gray-400">
+                                <i class="fas fa-clock mr-1"></i>${item.status}
+                            </span>
+                        </div>
+                        
+                        ${item.prime_notes ? `<div class="text-xs text-purple-400 italic mb-3 bg-purple-900/20 rounded p-2">
+                            <i class="fas fa-brain mr-1"></i>${item.prime_notes}
+                        </div>` : ''}
+                        
+                        <div class="flex items-center justify-between pt-2 border-t border-dark-600">
+                            <button class="text-xs text-gray-400 hover:text-blue-400 transition-colors" 
+                                    onclick="dashboard.toggleDetails(${item.id})">
+                                <i class="fas fa-eye mr-1"></i>View Details
+                            </button>
+                            <button class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded font-medium transition-colors" 
+                                    onclick="dashboard.startStoryAnalysis(${item.id})">
+                                <i class="fas fa-play mr-1"></i>Start Story
+                            </button>
+                        </div>
+                        
+                        <div id="details-${item.id}" class="hidden mt-3 pt-3 border-t border-dark-600">
+                            <div class="space-y-2 text-xs">
+                                <div>
+                                    <span class="text-gray-400">Full Success Criteria:</span>
+                                    <pre class="text-gray-300 whitespace-pre-wrap mt-1 bg-dark-700 rounded p-2">${item.success_criteria}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            async handleStoryCreation() {
+                const formData = {
+                    title: document.getElementById('storyTitle').value,
+                    description: document.getElementById('storyDescription').value,
+                    success_criteria: document.getElementById('successCriteria').value,
+                    priority: parseInt(document.getElementById('storyPriority').value),
+                    business_value: parseInt(document.getElementById('businessValue').value),
+                    estimated_complexity: document.getElementById('estimatedComplexity').value
+                };
+
+                try {
+                    const response = await fetch(`${this.apiBase}/backlog`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification(`Story "${formData.title}" added to backlog`, 'success');
+                        document.getElementById('storyCreationForm').reset();
+                        await this.loadDashboardData();
+                    } else {
+                        throw new Error(result.error);
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to add story:', error);
+                    this.showNotification('Failed to add story to backlog', 'error');
+                }
+            }
+
+            async updatePriority(backlogId, newPriority) {
+                try {
+                    const response = await fetch(`${this.apiBase}/backlog/${backlogId}/priority`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ priority: parseInt(newPriority) })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification('Priority updated', 'success');
+                        // Don't reload immediately to avoid disrupting user interaction
+                    } else {
+                        throw new Error(result.error);
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to update priority:', error);
+                    this.showNotification('Failed to update priority', 'error');
+                }
+            }
+
+            async handleReorder() {
+                try {
+                    const container = document.getElementById('backlogContainer');
+                    const cards = container.querySelectorAll('[data-backlog-id]');
+                    const orderedIds = Array.from(cards).map(card => 
+                        parseInt(card.getAttribute('data-backlog-id'))
+                    );
+
+                    const response = await fetch(`${this.apiBase}/backlog/reorder`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderedIds })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification('Backlog reordered', 'success');
+                    } else {
+                        throw new Error(result.error);
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to reorder backlog:', error);
+                    this.showNotification('Failed to save new order', 'error');
+                    // Reload to restore original order
+                    await this.loadDashboardData();
+                }
+            }
+
+            async loadPrimeNotifications() {
+                try {
+                    const response = await fetch(`${this.apiBase}/prime/notifications`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const badge = document.getElementById('notificationBadge');
+                        const count = result.unacknowledged_count;
+                        
+                        if (count > 0) {
+                            badge.textContent = count;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to load Prime notifications:', error);
+                }
+            }
+
+            async showPrimeNotifications() {
+                try {
+                    const response = await fetch(`${this.apiBase}/prime/notifications`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.displayNotifications(result.notifications);
+                        document.getElementById('notificationModal').classList.remove('hidden');
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to load notifications:', error);
+                    this.showNotification('Failed to load Prime notifications', 'error');
+                }
+            }
+
+            displayNotifications(notifications) {
+                const content = document.getElementById('notificationContent');
+                
+                if (notifications.length === 0) {
+                    content.innerHTML = '<div class="text-gray-400 text-center py-4">No notifications from Prime</div>';
+                    return;
+                }
+
+                content.innerHTML = notifications.map(notification => `
+                    <div class="border-b border-dark-600 py-3 ${notification.acknowledged ? 'opacity-60' : ''}">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <div class="text-white font-medium">${notification.notification_type.replace('_', ' ')}</div>
+                                <div class="text-gray-300 text-sm mt-1">${notification.change_description}</div>
+                                ${notification.story_title ? `<div class="text-blue-400 text-xs mt-1">Story: ${notification.story_title}</div>` : ''}
+                            </div>
+                            <div class="text-xs text-gray-400">
+                                ${new Date(notification.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async acknowledgeAllNotifications() {
+                try {
+                    const response = await fetch(`${this.apiBase}/prime/notifications/acknowledge`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({})
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification('All notifications acknowledged', 'success');
+                        this.hideNotificationModal();
+                        await this.loadPrimeNotifications();
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to acknowledge notifications:', error);
+                    this.showNotification('Failed to acknowledge notifications', 'error');
+                }
+            }
+
+            hideNotificationModal() {
+                document.getElementById('notificationModal').classList.add('hidden');
+            }
+
+            hideAnalysisModal() {
+                document.getElementById('analysisModal').classList.add('hidden');
+                this.currentAnalysisItem = null;
+            }
+
+            toggleDetails(itemId) {
+                const detailsDiv = document.getElementById(`details-${itemId}`);
+                const button = event.target.closest('button');
+                
+                if (detailsDiv.classList.contains('hidden')) {
+                    detailsDiv.classList.remove('hidden');
+                    button.innerHTML = '<i class="fas fa-eye-slash mr-1"></i>Hide Details';
+                } else {
+                    detailsDiv.classList.add('hidden');
+                    button.innerHTML = '<i class="fas fa-eye mr-1"></i>View Details';
+                }
+            }
+
+            async startStoryAnalysis(backlogId) {
+                // For now, just show success message
+                // In full implementation, this would trigger Prime's analysis
+                this.showNotification('Prime analysis would be triggered here', 'info');
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                const typeClasses = {
+                    success: 'bg-green-600 border-green-500',
+                    error: 'bg-red-600 border-red-500',
+                    info: 'bg-blue-600 border-blue-500',
+                    warning: 'bg-yellow-600 border-yellow-500'
+                };
+
+                notification.className = `fixed top-4 right-4 ${typeClasses[type]} border text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+
+            startAutoRefresh() {
+                setInterval(() => {
+                    if (!this.isRefreshing) {
+                        this.loadDashboardData();
+                    }
+                }, this.refreshInterval);
+            }
+        }
+
+        // Initialize dashboard when DOM is ready
+        let dashboard;
+        document.addEventListener('DOMContentLoaded', () => {
+            dashboard = new CCMemIntegratedDashboard();
+        });
+    </script>
+</body>
+</html>
