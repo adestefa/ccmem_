@@ -1309,6 +1309,224 @@ server.tool('ccmem-list', 'List stories, tasks, and defects with flexible filter
 });
 
 // =================================================================
+// --- PRIME SPOCK PERSONA & LEARNING TOOLS ---
+// =================================================================
+
+server.tool('ccmem-set-mode', 'Set Prime operational mode and logical framework', {
+    mode: z.enum(['builder', 'maintainer']).default('maintainer'),
+    spock_analysis: z.boolean().optional().default(true),
+    priority_level: z.enum(['low', 'medium', 'high', 'critical']).optional().default('medium')
+}, async({mode, spock_analysis, priority_level}) => {
+    
+    // Store Prime's operational mode in facts table
+    const insertMode = db.prepare(`
+        INSERT OR REPLACE INTO facts (category, key, value, source, confidence, timestamp)
+        VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `);
+    
+    insertMode.run('prime_config', 'operational_mode', mode, 'system', 100);
+    insertMode.run('prime_config', 'spock_analysis', spock_analysis ? 'enabled' : 'disabled', 'system', 100);
+    insertMode.run('prime_config', 'priority_level', priority_level, 'system', 100);
+    
+    // Define operational characteristics
+    const modeConfig = {
+        builder: {
+            description: "Green field project mode - optimized for rapid development and feature creation",
+            priorities: ["Innovation", "Feature velocity", "Technical exploration", "User value delivery"],
+            constraints: ["Maintain code quality", "Document architectural decisions", "Consider scalability"],
+            spock_guidance: "Logic suggests rapid iteration with systematic documentation of decisions"
+        },
+        maintainer: {
+            description: "Brown field project mode - prioritize application stability and integrity",
+            priorities: ["Application availability", "System integrity", "Risk mitigation", "Incremental improvement"],
+            constraints: ["No breaking changes without analysis", "Comprehensive testing required", "Backwards compatibility"],
+            spock_guidance: "Logic dictates preservation of working systems over untested enhancements"
+        }
+    };
+    
+    const config = modeConfig[mode];
+    
+    // Store detailed configuration
+    insertMode.run('prime_config', 'mode_description', config.description, 'system', 100);
+    insertMode.run('prime_config', 'priorities', JSON.stringify(config.priorities), 'system', 100);
+    insertMode.run('prime_config', 'constraints', JSON.stringify(config.constraints), 'system', 100);
+    insertMode.run('prime_config', 'spock_guidance', config.spock_guidance, 'system', 100);
+    
+    let response = `🖖 **PRIME OPERATIONAL MODE CONFIGURED**\n\n`;
+    response += `**Mode**: ${mode.toUpperCase()}\n`;
+    response += `**Description**: ${config.description}\n\n`;
+    response += `**Spock Analysis**: ${spock_analysis ? 'ENABLED' : 'DISABLED'}\n`;
+    response += `**Priority Level**: ${priority_level.toUpperCase()}\n\n`;
+    
+    response += `## 🎯 Prime Priorities (In Order)\n`;
+    config.priorities.forEach((priority, index) => {
+        response += `${index + 1}. ${priority}\n`;
+    });
+    
+    response += `\n## ⚠️ Operational Constraints\n`;
+    config.constraints.forEach(constraint => {
+        response += `- ${constraint}\n`;
+    });
+    
+    response += `\n## 🖖 Spock's Logical Assessment\n`;
+    response += `*"${config.spock_guidance}"*\n\n`;
+    
+    response += `**Core Directive**: We recommend against any action that would be illogical and break the application. `;
+    response += `We always prioritize field summary over code changes. Prime functions with pure logic, `;
+    response += `serving as guardian of application integrity.\n\n`;
+    
+    if (mode === 'maintainer') {
+        response += `⚠️ **MAINTAINER MODE**: All changes will be evaluated for risk. `;
+        response += `Application stability takes precedence over feature requests.\n\n`;
+    }
+    
+    response += `✅ Prime is now operating in **${mode.toUpperCase()}** mode with Spock-level logical analysis.`;
+    
+    return { content: [{ type: "text", text: response }] };
+});
+
+server.tool('ccmem-logical-analysis', 'Prime performs Spock-like logical analysis of proposed changes', {
+    proposal: z.string(),
+    impact_assessment: z.boolean().optional().default(true),
+    risk_evaluation: z.boolean().optional().default(true)
+}, async({proposal, impact_assessment, risk_evaluation}) => {
+    
+    // Get current operational mode
+    const currentMode = db.prepare(`
+        SELECT value FROM facts 
+        WHERE category = 'prime_config' AND key = 'operational_mode'
+        ORDER BY timestamp DESC LIMIT 1
+    `).get() as { value: string } | undefined;
+    
+    const mode = currentMode?.value || 'maintainer';
+    const isSpockEnabled = db.prepare(`
+        SELECT value FROM facts 
+        WHERE category = 'prime_config' AND key = 'spock_analysis'
+        ORDER BY timestamp DESC LIMIT 1
+    `).get() as { value: string } | undefined;
+    
+    if (isSpockEnabled?.value === 'disabled') {
+        return { content: [{ type: "text", text: `❌ Spock analysis is currently disabled. Use ccmem-set-mode to enable.` }] };
+    }
+    
+    // Analyze proposal against known landmines and risks
+    const relatedLandmines = db.prepare(`
+        SELECT l.*, t.description as task_description
+        FROM landmines l
+        LEFT JOIN task t ON l.task_id = t.id
+        WHERE l.error_context LIKE '%' || ? || '%' 
+           OR l.attempted_fixes LIKE '%' || ? || '%'
+        ORDER BY l.timestamp DESC
+        LIMIT 5
+    `).all(proposal, proposal);
+    
+    let response = `🖖 **SPOCK'S LOGICAL ANALYSIS**\n\n`;
+    response += `**Proposal Under Review**: ${proposal}\n`;
+    response += `**Current Mode**: ${mode.toUpperCase()}\n`;
+    response += `**Analysis Timestamp**: ${new Date().toISOString()}\n\n`;
+    
+    // Risk Assessment
+    if (risk_evaluation) {
+        response += `## 🚨 Risk Evaluation\n`;
+        
+        if (relatedLandmines.length > 0) {
+            response += `**⚠️ HISTORICAL FAILURES DETECTED**\n`;
+            response += `Found ${relatedLandmines.length} related landmine(s) in system memory:\n\n`;
+            
+            relatedLandmines.forEach((landmine, index) => {
+                response += `**Landmine ${index + 1}**:\n`;
+                response += `- Error Context: ${landmine.error_context}\n`;
+                response += `- Previous Fixes: ${landmine.attempted_fixes}\n`;
+                response += `- Task: ${landmine.task_description || 'Unknown'}\n\n`;
+            });
+            
+            response += `**Spock's Assessment**: "Logic suggests extreme caution. `;
+            response += `Previous attempts in this domain have resulted in system failures."\n\n`;
+        } else {
+            response += `**✅ No Historical Failures**: No related landmines found in system memory.\n\n`;
+        }
+    }
+    
+    // Impact Assessment
+    if (impact_assessment) {
+        response += `## 📊 Impact Assessment\n`;
+        
+        // Check for breaking change indicators
+        const breakingIndicators = [
+            'delete', 'remove', 'drop', 'truncate', 'alter table', 'breaking change',
+            'major version', 'incompatible', 'deprecated', 'migration required'
+        ];
+        
+        const hasBreakingIndicators = breakingIndicators.some(indicator => 
+            proposal.toLowerCase().includes(indicator)
+        );
+        
+        if (hasBreakingIndicators) {
+            response += `**🚨 BREAKING CHANGE DETECTED**\n`;
+            response += `Proposal contains indicators of potentially breaking changes.\n\n`;
+            
+            if (mode === 'maintainer') {
+                response += `**MAINTAINER MODE WARNING**: This change conflicts with operational priorities.\n`;
+                response += `**Spock's Logic**: "In maintainer mode, application stability must take precedence `;
+                response += `over feature enhancements. Proceed only with comprehensive testing and rollback plans."\n\n`;
+            }
+        } else {
+            response += `**✅ Non-Breaking Change**: No obvious breaking change indicators detected.\n\n`;
+        }
+        
+        // System complexity analysis
+        const currentTasks = db.prepare(`SELECT COUNT(*) as count FROM task WHERE status IN ('pending', 'in_progress')`).get() as { count: number };
+        const openDefects = db.prepare(`SELECT COUNT(*) as count FROM defect WHERE status = 'open'`).get() as { count: number };
+        
+        response += `**System State Analysis**:\n`;
+        response += `- Active Tasks: ${currentTasks.count}\n`;
+        response += `- Open Defects: ${openDefects.count}\n`;
+        
+        if (openDefects.count > 0 && mode === 'maintainer') {
+            response += `\n**Spock's Logic**: "Current system has ${openDefects.count} open defect(s). `;
+            response += `Logic suggests addressing existing issues before introducing new changes."\n\n`;
+        }
+    }
+    
+    // Final Recommendation
+    response += `## 🎯 Logical Recommendation\n`;
+    
+    const riskScore = relatedLandmines.length * 20 + (hasBreakingIndicators ? 30 : 0) + (openDefects.count * 10);
+    
+    if (riskScore >= 50) {
+        response += `**❌ RECOMMENDATION: REJECT**\n`;
+        response += `Risk Score: ${riskScore}/100 (HIGH RISK)\n`;
+        response += `**Spock's Final Assessment**: "The logical course of action is to reject this proposal. `;
+        response += `Risk of system disruption outweighs potential benefits."\n\n`;
+    } else if (riskScore >= 25) {
+        response += `**⚠️ RECOMMENDATION: PROCEED WITH CAUTION**\n`;
+        response += `Risk Score: ${riskScore}/100 (MEDIUM RISK)\n`;
+        response += `**Spock's Final Assessment**: "Proposal is logically acceptable with proper safeguards. `;
+        response += `Implement comprehensive testing and monitoring."\n\n`;
+    } else {
+        response += `**✅ RECOMMENDATION: APPROVE**\n`;
+        response += `Risk Score: ${riskScore}/100 (LOW RISK)\n`;
+        response += `**Spock's Final Assessment**: "Logic supports this change. `;
+        response += `Risk level is acceptable within current operational parameters."\n\n`;
+    }
+    
+    response += `**Remember**: Prime prioritizes logic over agreement. `;
+    response += `Our primary directive is application integrity, not user satisfaction.`;
+    
+    // Log this analysis
+    const insertAnalysis = db.prepare(`
+        INSERT INTO facts (category, key, value, source, confidence, timestamp)
+        VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `);
+    
+    insertAnalysis.run('logical_analysis', 'proposal', proposal, 'spock_persona', 95);
+    insertAnalysis.run('logical_analysis', 'risk_score', riskScore.toString(), 'spock_persona', 95);
+    insertAnalysis.run('logical_analysis', 'recommendation', riskScore >= 50 ? 'reject' : (riskScore >= 25 ? 'caution' : 'approve'), 'spock_persona', 95);
+    
+    return { content: [{ type: "text", text: response }] };
+});
+
+// =================================================================
 // --- PRIME LEARNING TOOLS ---
 // =================================================================
 

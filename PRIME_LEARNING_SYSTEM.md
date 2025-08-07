@@ -1,15 +1,21 @@
 # 🧠 Prime Learning System - Complete Implementation
 
-Prime can now be **taught** about your tools and systems, making him a true expert on your project!
+Prime can now be **taught** about your tools and systems, making him a true expert on your project! Enhanced with the **🖖 Spock Persona**, Prime now operates with logical, non-sycophantic analysis, prioritizing application integrity over user agreement.
 
 ## 🎯 What We Built
 
-### 1. **Prime Learning Tools (NEW MCP Tools)**
+### 1. **🖖 Spock Persona System (NEW)**
+- **`ccmem-set-mode`**: Configure Prime's operational mode (Builder/Maintainer)
+- **`ccmem-logical-analysis`**: Spock-like logical analysis of proposed changes
+- **Risk Assessment**: Objective risk scoring based on historical failures
+- **Application Guardian**: Prioritizes logic over agreement, system integrity over user satisfaction
+
+### 2. **Prime Learning Tools (NEW MCP Tools)**
 - **`ccmem-prime-learn`**: Prime learns facts from text, markdown, or files
 - **`ccmem-recall-facts`**: Prime searches and recalls learned knowledge
 - **`refresh-dashboard`**: Prime refreshes kanban dashboard and opens browser
 
-### 2. **Facts Database (NEW Table)**
+### 3. **Facts Database (NEW Table)**
 - **`facts` table**: Stores Prime's learned knowledge with categories
 - **Categories**: dashboard, kanban, commands, api, troubleshooting
 - **Confidence levels**: 0-100% for fact reliability
