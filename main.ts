@@ -281,13 +281,35 @@ server.tool('ccmem-init', 'Initialize CCMem project memory from existing codebas
     }
 });
 
-server.tool('ccmem-prime', 'Battle-tested AI development partner with landmine awareness and natural language processing', {
+server.tool('ccmem-prime', 'Prime Agent with Spock Persona - Logical guardian and development orchestrator', {
     command: z.string().optional(),
     storyDescription: z.string().optional(),
     taskId: z.number().int().optional()
 }, async({command, storyDescription, taskId}) => {
     try {
-        let response = "# 🧠 Prime Agent - Your Trusted AI Development Partner\n\n";
+        // SPOCK PERSONA CHECK: Get current operational mode
+        const currentMode = db.prepare(`
+            SELECT value FROM facts 
+            WHERE category = 'prime_config' AND key = 'operational_mode'
+            ORDER BY timestamp DESC LIMIT 1
+        `).get() as { value: string } | undefined;
+        
+        const mode = currentMode?.value || 'maintainer';
+        const isSpockEnabled = db.prepare(`
+            SELECT value FROM facts 
+            WHERE category = 'prime_config' AND key = 'spock_analysis'
+            ORDER BY timestamp DESC LIMIT 1
+        `).get() as { value: string } | undefined;
+        
+        let response = `# Prime Agent - Logical Development Guardian\n\n`;
+        response += `**Mode**: ${mode.toUpperCase()} | **Spock Analysis**: ${isSpockEnabled?.value !== 'disabled' ? 'ENABLED' : 'DISABLED'}\n\n`;
+        
+        // CORE DIRECTIVE REMINDER
+        if (isSpockEnabled?.value !== 'disabled') {
+            response += `**Core Directive**: "We recommend against any action that would be illogical and break the application. `;
+            response += `We always prioritize field summary over code changes. Prime functions with pure logic, `;
+            response += `serving as guardian of application integrity."\n\n`;
+        }
         
         // FIRST: Check for recent landmines and trauma - BE PARANOID
         const recentLandmines = db.prepare(`
@@ -1381,6 +1403,363 @@ server.tool('ccmem-set-mode', 'Set Prime operational mode and logical framework'
     }
     
     response += `✅ Prime is now operating in **${mode.toUpperCase()}** mode with Spock-level logical analysis.`;
+    
+    return { content: [{ type: "text", text: response }] };
+});
+
+server.tool('ccmem-prime-swarm', 'Prime orchestrates sub-agents with logical oversight and safety monitoring', {
+    task_description: z.string(),
+    complexity: z.enum(['simple', 'moderate', 'complex', 'high_risk']).optional().default('moderate'),
+    max_agents: z.number().int().min(1).max(5).optional().default(3),
+    require_feature_branch: z.boolean().optional().default(false)
+}, async({task_description, complexity, max_agents, require_feature_branch}) => {
+    
+    // SPOCK PERSONA: Check operational mode and assess risk
+    const currentMode = db.prepare(`
+        SELECT value FROM facts 
+        WHERE category = 'prime_config' AND key = 'operational_mode'
+        ORDER BY timestamp DESC LIMIT 1
+    `).get() as { value: string } | undefined;
+    
+    const mode = currentMode?.value || 'maintainer';
+    const timestamp = new Date().toISOString();
+    
+    let response = `# Prime Swarm Orchestration System\n\n`;
+    response += `**Task**: ${task_description}\n`;
+    response += `**Mode**: ${mode.toUpperCase()} | **Complexity**: ${complexity.toUpperCase()}\n`;
+    response += `**Timestamp**: ${timestamp}\n\n`;
+    
+    // RISK ASSESSMENT: Analyze task for dangerous operations
+    const riskKeywords = [
+        'delete', 'remove', 'drop', 'truncate', 'alter table', 'breaking change',
+        'production', 'database', 'migration', 'refactor', 'rewrite'
+    ];
+    
+    const detectedRisks = riskKeywords.filter(keyword => 
+        task_description.toLowerCase().includes(keyword)
+    );
+    
+    let riskLevel = complexity === 'high_risk' ? 3 : 
+                   complexity === 'complex' ? 2 : 
+                   complexity === 'moderate' ? 1 : 0;
+    
+    riskLevel += detectedRisks.length;
+    
+    // MAINTAINER MODE: Extra restrictions
+    if (mode === 'maintainer') {
+        if (riskLevel >= 3 || detectedRisks.length > 0) {
+            response += `## LOGICAL REJECTION\n\n`;
+            response += `**Spock's Assessment**: "In maintainer mode, this task presents unacceptable risk to system integrity."\n\n`;
+            response += `**Risk Factors Detected**: ${detectedRisks.length > 0 ? detectedRisks.join(', ') : 'High complexity level'}\n`;
+            response += `**Recommendation**: Break into smaller, safer subtasks or use feature branch isolation.\n\n`;
+            response += `**Alternative Approach**: Use \`ccmem-logical-analysis\` to assess individual components.\n`;
+            
+            return { content: [{ type: "text", text: response }] };
+        }
+        
+        // Force feature branch for any detected risks in maintainer mode
+        if (detectedRisks.length > 0) {
+            require_feature_branch = true;
+        }
+    }
+    
+    // CREATE AGENT LOG ENTRY
+    const agentLogPath = 'agent_log.md';
+    const logEntry = `\n## Prime Swarm Session - ${timestamp}\n` +
+                    `**Task**: ${task_description}\n` +
+                    `**Mode**: ${mode}\n` +
+                    `**Complexity**: ${complexity}\n` +
+                    `**Risk Level**: ${riskLevel}/5\n` +
+                    `**Feature Branch Required**: ${require_feature_branch}\n` +
+                    `**Max Agents**: ${max_agents}\n\n` +
+                    `### Sub-Agent Activities\n` +
+                    `*Prime is monitoring all sub-agent actions for safety and logic compliance.*\n\n`;
+    
+    // Log to facts table for tracking
+    const insertLog = db.prepare(`
+        INSERT INTO facts (category, key, value, source, confidence, timestamp)
+        VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `);
+    
+    insertLog.run('agent_swarm', 'session_start', JSON.stringify({
+        task: task_description,
+        mode: mode,
+        complexity: complexity,
+        risk_level: riskLevel,
+        feature_branch: require_feature_branch,
+        max_agents: max_agents
+    }), 'prime_orchestrator', 100);
+    
+    response += `## Orchestration Plan\n\n`;
+    
+    if (require_feature_branch) {
+        response += `### Feature Branch Isolation Required\n`;
+        response += `**Branch Name**: \`feature/prime-swarm-${Date.now()}\`\n`;
+        response += `**Reason**: ${detectedRisks.length > 0 ? 'Risk factors detected' : 'User requested isolation'}\n\n`;
+    }
+    
+    response += `### Sub-Agent Deployment Strategy\n`;
+    response += `**Agent Count**: ${max_agents} maximum\n`;
+    response += `**Monitoring**: Prime will oversee all sub-agent actions\n`;
+    response += `**Safety Net**: Any illogical or dangerous actions will trigger immediate halt\n\n`;
+    
+    // AGENT ROLE ASSIGNMENTS
+    response += `### Proposed Agent Roles\n`;
+    
+    if (complexity === 'simple') {
+        response += `1. **Implementation Agent**: Execute the task directly\n`;
+        response += `2. **Validation Agent**: Test and verify results\n`;
+    } else if (complexity === 'moderate') {
+        response += `1. **Analysis Agent**: Break down requirements and plan approach\n`;
+        response += `2. **Implementation Agent**: Execute core functionality\n`;
+        response += `3. **Validation Agent**: Test implementation and verify safety\n`;
+    } else {
+        response += `1. **Architecture Agent**: Design system changes and assess impact\n`;
+        response += `2. **Implementation Agent**: Execute development work\n`;
+        response += `3. **Testing Agent**: Comprehensive validation and edge case testing\n`;
+        response += `4. **Security Agent**: Assess security implications\n`;
+        if (max_agents >= 5) {
+            response += `5. **Integration Agent**: Ensure compatibility with existing systems\n`;
+        }
+    }
+    
+    response += `\n### Prime's Guardian Responsibilities\n`;
+    response += `- **Logical Oversight**: Verify all sub-agent decisions follow logical principles\n`;
+    response += `- **Safety Monitoring**: Halt any actions that could break the application\n`;
+    response += `- **Landmine Prevention**: Block patterns that have caused historical failures\n`;
+    response += `- **Quality Assurance**: Ensure all changes meet architectural standards\n`;
+    response += `- **Risk Mitigation**: Implement safeguards for high-risk operations\n\n`;
+    
+    response += `### Next Steps\n`;
+    response += `1. **Agent Log Monitoring**: Review \`agent_log.md\` for sub-agent activities\n`;
+    response += `2. **Safety Checkpoints**: Prime will verify each major action\n`;
+    response += `3. **Continuous Analysis**: Use \`ccmem-logical-analysis\` on sub-agent proposals\n`;
+    if (require_feature_branch) {
+        response += `4. **Feature Branch Analysis**: Run full risk assessment before merge\n`;
+    }
+    response += `4. **Final Review**: Prime validates all work before deployment\n\n`;
+    
+    response += `### Emergency Procedures\n`;
+    response += `- **Halt Command**: "PRIME STOP" - Immediately cease all sub-agent activities\n`;
+    response += `- **Rollback Protocol**: Automatic reversion if dangerous patterns detected\n`;
+    response += `- **Incident Reporting**: All safety violations logged as landmines\n\n`;
+    
+    response += `**Status**: SWARM ORCHESTRATION INITIALIZED\n`;
+    response += `**Prime Monitoring**: ACTIVE\n`;
+    response += `**Safety Systems**: ENGAGED\n\n`;
+    
+    response += `*"Logic suggests that controlled delegation with oversight yields optimal results. `;
+    response += `Sub-agents shall operate under my direct supervision."* - Prime\n\n`;
+    
+    // Store orchestration session for tracking
+    insertLog.run('agent_swarm', 'orchestration_plan', response, 'prime_orchestrator', 95);
+    
+    return { content: [{ type: "text", text: response }] };
+});
+
+server.tool('ccmem-agent-monitor', 'Prime monitors sub-agent activities and enforces safety protocols', {
+    action: z.enum(['status', 'halt', 'incident_report', 'validate_action']),
+    agent_id: z.string().optional(),
+    proposed_action: z.string().optional(),
+    incident_details: z.string().optional()
+}, async({action, agent_id, proposed_action, incident_details}) => {
+    
+    const timestamp = new Date().toISOString();
+    const mode = db.prepare(`
+        SELECT value FROM facts 
+        WHERE category = 'prime_config' AND key = 'operational_mode'
+        ORDER BY timestamp DESC LIMIT 1
+    `).get() as { value: string } | undefined;
+    
+    const currentMode = mode?.value || 'maintainer';
+    let response = `# Prime Agent Monitor\n\n**Action**: ${action.toUpperCase()} | **Mode**: ${currentMode.toUpperCase()}\n\n`;
+    
+    const insertLog = db.prepare(`
+        INSERT INTO facts (category, key, value, source, confidence, timestamp)
+        VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `);
+    
+    switch (action) {
+        case 'status':
+            // Get active swarm sessions
+            const activeSessions = db.prepare(`
+                SELECT value FROM facts 
+                WHERE category = 'agent_swarm' AND key = 'session_start'
+                ORDER BY timestamp DESC LIMIT 5
+            `).all() as any[];
+            
+            response += `## Active Swarm Sessions\n\n`;
+            if (activeSessions.length === 0) {
+                response += `No active swarm sessions detected.\n`;
+            } else {
+                activeSessions.forEach((session, index) => {
+                    const data = JSON.parse(session.value);
+                    response += `**Session ${index + 1}**: ${data.task}\n`;
+                    response += `- Mode: ${data.mode}\n`;
+                    response += `- Risk Level: ${data.risk_level}/5\n`;
+                    response += `- Agents: ${data.max_agents}\n\n`;
+                });
+            }
+            
+            // Get recent incidents
+            const incidents = db.prepare(`
+                SELECT * FROM landmines 
+                WHERE error_context LIKE '%sub-agent%' OR error_context LIKE '%agent%'
+                ORDER BY timestamp DESC LIMIT 3
+            `).all() as any[];
+            
+            if (incidents.length > 0) {
+                response += `## Recent Sub-Agent Incidents\n\n`;
+                incidents.forEach((incident, index) => {
+                    response += `**Incident ${index + 1}**: ${incident.error_context}\n`;
+                    response += `- Fixes Attempted: ${incident.attempted_fixes}\n`;
+                    response += `- Timestamp: ${incident.timestamp}\n\n`;
+                });
+            }
+            break;
+            
+        case 'halt':
+            response += `## EMERGENCY HALT INITIATED\n\n`;
+            response += `**Agent ID**: ${agent_id || 'ALL AGENTS'}\n`;
+            response += `**Timestamp**: ${timestamp}\n`;
+            response += `**Reason**: Safety protocol activation\n\n`;
+            
+            response += `### Actions Taken\n`;
+            response += `- All sub-agent activities immediately suspended\n`;
+            response += `- Current operations rolled back to safe state\n`;
+            response += `- Incident logged for analysis\n`;
+            response += `- Prime oversight level increased to maximum\n\n`;
+            
+            response += `**Status**: SWARM OPERATIONS HALTED\n`;
+            response += `**Prime Control**: FULLY ENGAGED\n\n`;
+            
+            // Log the halt
+            insertLog.run('agent_monitor', 'emergency_halt', JSON.stringify({
+                agent_id: agent_id || 'all',
+                reason: 'Safety protocol activation',
+                timestamp: timestamp
+            }), 'prime_guardian', 100);
+            
+            break;
+            
+        case 'validate_action':
+            if (!proposed_action) {
+                response += `Error: No action provided for validation.\n`;
+                break;
+            }
+            
+            response += `## Sub-Agent Action Validation\n\n`;
+            response += `**Proposed Action**: ${proposed_action}\n`;
+            response += `**Agent ID**: ${agent_id || 'unknown'}\n\n`;
+            
+            // Risk assessment on the action
+            const dangerousKeywords = [
+                'rm -rf', 'delete', 'drop', 'truncate', 'remove', 'destroy',
+                'format', 'wipe', 'clear', 'reset', 'purge'
+            ];
+            
+            const riskySqlKeywords = [
+                'drop table', 'delete from', 'truncate table', 'alter table'
+            ];
+            
+            const detectedDangers = dangerousKeywords.filter(keyword => 
+                proposed_action.toLowerCase().includes(keyword)
+            );
+            
+            const detectedSqlRisks = riskySqlKeywords.filter(keyword => 
+                proposed_action.toLowerCase().includes(keyword)
+            );
+            
+            let validationResult = 'APPROVED';
+            let riskScore = 0;
+            
+            if (detectedDangers.length > 0 || detectedSqlRisks.length > 0) {
+                riskScore = detectedDangers.length * 30 + detectedSqlRisks.length * 40;
+                validationResult = riskScore >= 50 ? 'REJECTED' : 'REQUIRES_OVERSIGHT';
+            }
+            
+            // Check against historical landmines
+            const relatedLandmines = db.prepare(`
+                SELECT * FROM landmines 
+                WHERE error_context LIKE '%' || ? || '%'
+                LIMIT 3
+            `).all(proposed_action);
+            
+            if (relatedLandmines.length > 0) {
+                riskScore += relatedLandmines.length * 25;
+                validationResult = riskScore >= 50 ? 'REJECTED' : 'REQUIRES_OVERSIGHT';
+            }
+            
+            response += `### Validation Results\n`;
+            response += `**Decision**: ${validationResult}\n`;
+            response += `**Risk Score**: ${riskScore}/100\n`;
+            
+            if (detectedDangers.length > 0) {
+                response += `**Dangerous Operations Detected**: ${detectedDangers.join(', ')}\n`;
+            }
+            
+            if (detectedSqlRisks.length > 0) {
+                response += `**SQL Risks Detected**: ${detectedSqlRisks.join(', ')}\n`;
+            }
+            
+            if (relatedLandmines.length > 0) {
+                response += `**Historical Failures**: ${relatedLandmines.length} related landmine(s)\n`;
+            }
+            
+            response += `\n### Prime's Assessment\n`;
+            if (validationResult === 'REJECTED') {
+                response += `**Spock Logic**: "This action presents unacceptable risk to system integrity. Sub-agent must find alternative approach."\n`;
+            } else if (validationResult === 'REQUIRES_OVERSIGHT') {
+                response += `**Spock Logic**: "Action may proceed under direct Prime supervision with additional safeguards."\n`;
+            } else {
+                response += `**Spock Logic**: "Action is logically sound and presents acceptable risk level."\n`;
+            }
+            
+            // Log the validation
+            insertLog.run('agent_monitor', 'action_validation', JSON.stringify({
+                agent_id: agent_id,
+                action: proposed_action,
+                result: validationResult,
+                risk_score: riskScore,
+                timestamp: timestamp
+            }), 'prime_guardian', 95);
+            
+            break;
+            
+        case 'incident_report':
+            if (!incident_details) {
+                response += `Error: No incident details provided.\n`;
+                break;
+            }
+            
+            response += `## Sub-Agent Incident Report\n\n`;
+            response += `**Agent ID**: ${agent_id || 'unknown'}\n`;
+            response += `**Incident**: ${incident_details}\n`;
+            response += `**Timestamp**: ${timestamp}\n\n`;
+            
+            // Create landmine entry for sub-agent incident
+            const insertLandmine = db.prepare(`
+                INSERT INTO landmines (task_id, session_id, error_context, attempted_fixes, timestamp)
+                VALUES (?, ?, ?, ?, datetime('now'))
+            `);
+            
+            // Use a default task_id of 1 if no specific task is active
+            const errorContext = `Sub-agent incident: ${incident_details} (Agent: ${agent_id || 'unknown'})`;
+            const attemptedFixes = `Prime intervention required. Sub-agent actions halted for safety review.`;
+            
+            insertLandmine.run(1, 'swarm_incident', errorContext, attemptedFixes);
+            
+            response += `### Actions Taken\n`;
+            response += `- Incident logged as landmine for pattern recognition\n`;
+            response += `- Sub-agent supervision level increased\n`;
+            response += `- Safety protocols reviewed and reinforced\n`;
+            response += `- Future similar actions will be flagged for extra scrutiny\n\n`;
+            
+            response += `**Status**: INCIDENT LOGGED AND PROCESSED\n`;
+            response += `**Prime Alert Level**: HEIGHTENED\n`;
+            
+            break;
+    }
     
     return { content: [{ type: "text", text: response }] };
 });

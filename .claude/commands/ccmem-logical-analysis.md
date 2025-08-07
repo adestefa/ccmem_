@@ -9,7 +9,16 @@ This command engages Prime's Spock Persona to analyze proposed changes through p
 ## Usage
 
 ```
-/ccmem-logical-analysis "<proposed change description>"
+/ccmem-logical-analysis "your proposed change description"
+```
+
+## Quick Examples
+
+```
+/ccmem-logical-analysis "Add required email column to users table"
+/ccmem-logical-analysis "Upgrade React from v17 to v18"
+/ccmem-logical-analysis "Remove legacy payment processing module"
+/ccmem-logical-analysis "Refactor authentication to use JWT tokens"
 ```
 
 ## Analysis Framework
