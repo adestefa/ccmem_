@@ -1,0 +1,27 @@
+{
+  "project": {
+    "name": "{{PROJECT_NAME}}",
+    "displayName": "{{PROJECT_DISPLAY_NAME}}",
+    "path": "{{PROJECT_PATH}}",
+    "database": "./ccmem.db"
+  },
+  "server": {
+    "port": {{SERVER_PORT}},
+    "basePath": "/{{PROJECT_NAME}}",
+    "title": "{{PROJECT_DISPLAY_NAME}} - CCMem Dashboard"
+  },
+  "ccmem": {
+    "mainPath": "/Users/corelogic/satori-dev/ccmem",
+    "version": "3.2.0"
+  },
+  "features": {
+    "terminalIntegration": true,
+    "primeAnalysis": true,
+    "kanbanWorkflow": true
+  },
+  "ui": {
+    "theme": "dark",
+    "logoPath": null,
+    "customCss": null
+  }
+}

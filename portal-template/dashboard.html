@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{PROJECT_TITLE}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
+                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
+                            800: '#1e293b', 900: '#0f172a', 950: '#020617'
+                        },
+                        coral: {
+                            400: '#ff7849', 500: '#ff6b47', 600: '#e55039', 700: '#c44569',
+                            800: '#a55eea', 900: '#8854d0'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark-900 text-white font-sans">
+    <!-- Header -->
+    <header class="bg-dark-800 border-b border-dark-700 p-4 sticky top-0 z-10">
+        <div class="flex items-center justify-between max-w-7xl mx-auto">
+            <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-coral-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-brain text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">CCMem Portal</h1>
+                        <p class="text-sm text-gray-400" id="projectTitle"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs text-gray-400">Live</span>
+                </div>
+                <button id="refreshBtn" class="bg-coral-600 hover:bg-coral-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i id="refreshIcon" class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+                <div class="text-sm text-gray-400">
+                    Last updated: <span id="lastUpdated">--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-white" id="totalStories">-</div>
+                <div class="text-gray-400 text-sm">Active Stories</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-purple-500" id="backlogItems">-</div>
+                <div class="text-gray-400 text-sm">Backlog</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-blue-500" id="devTasks">-</div>
+                <div class="text-gray-400 text-sm">In Development</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-yellow-500" id="qaTasks">-</div>
+                <div class="text-gray-400 text-sm">In QA</div>
+            </div>
+            <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+                <div class="text-2xl font-bold text-green-500" id="completedTasks">-</div>
+                <div class="text-gray-400 text-sm">Completed</div>
+            </div>
+        </div>
+
+        <!-- Project Kanban -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-white mb-6">Project Kanban Board</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Backlog Column -->
+                <div class="bg-dark-800 rounded-lg border border-dark-700">
+                    <div class="p-4 border-b border-dark-700">
+                        <h3 class="font-semibold text-purple-500 flex items-center">
+                            <i class="fas fa-inbox mr-2"></i>Backlog
+                            <span class="ml-2 text-xs bg-purple-500 text-white px-2 py-1 rounded-full" id="backlogCount">0</span>
+                        </h3>
+                    </div>
+                    <div class="p-4 space-y-3" id="backlogColumn"></div>
+                </div>
+
+                <!-- Development Column -->
+                <div class="bg-dark-800 rounded-lg border border-dark-700">
+                    <div class="p-4 border-b border-dark-700">
+                        <h3 class="font-semibold text-blue-500 flex items-center">
+                            <i class="fas fa-code mr-2"></i>Development
+                            <span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded-full" id="devCount">0</span>
+                        </h3>
+                    </div>
+                    <div class="p-4 space-y-3" id="developmentColumn"></div>
+                </div>
+
+                <!-- QA Column -->
+                <div class="bg-dark-800 rounded-lg border border-dark-700">
+                    <div class="p-4 border-b border-dark-700">
+                        <h3 class="font-semibold text-yellow-500 flex items-center">
+                            <i class="fas fa-bug mr-2"></i>QA
+                            <span class="ml-2 text-xs bg-yellow-500 text-black px-2 py-1 rounded-full" id="qaCount">0</span>
+                        </h3>
+                    </div>
+                    <div class="p-4 space-y-3" id="qaColumn"></div>
+                </div>
+
+                <!-- Done Column -->
+                <div class="bg-dark-800 rounded-lg border border-dark-700">
+                    <div class="p-4 border-b border-dark-700">
+                        <h3 class="font-semibold text-green-500 flex items-center">
+                            <i class="fas fa-check-circle mr-2"></i>Done
+                            <span class="ml-2 text-xs bg-green-500 text-white px-2 py-1 rounded-full" id="doneCount">0</span>
+                        </h3>
+                    </div>
+                    <div class="p-4 space-y-3" id="doneColumn"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prime Notifications -->
+        <div class="bg-dark-800 rounded-lg border border-dark-700">
+            <div class="p-4 border-b border-dark-700">
+                <h3 class="font-semibold text-orange-500 flex items-center">
+                    <i class="fas fa-bell mr-2"></i>Prime Notifications
+                    <span class="ml-2 text-xs bg-orange-500 text-white px-2 py-1 rounded-full" id="notificationCount">0</span>
+                </h3>
+            </div>
+            <div class="max-h-64 overflow-y-auto" id="notificationsContainer">
+                <div class="p-4 text-gray-400 text-center">No notifications available</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Details Modal -->
+    <div id="storyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-dark-800 rounded-lg border border-dark-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-dark-700 flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-white" id="modalTitle">Story Details</h2>
+                <button id="closeModal" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6" id="modalContent">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Project configuration injected by server
+        const projectConfig = {{PROJECT_CONFIG}};
+        const basePath = '{{BASE_PATH}}';
+        
+        // Dashboard management object
+        const dashboard = {
+            backlogItems: [],
+
+            async init() {
+                console.log('🚀 Initializing CCMem Portal Dashboard');
+                console.log('📍 Project:', projectConfig.project.displayName);
+                console.log('🔌 Base Path:', basePath);
+                
+                // Set project title in masthead
+                document.getElementById('projectTitle').textContent = projectConfig.project.displayName;
+                
+                await this.loadBacklogItems();
+                await this.loadNotifications();
+                this.updateLastRefresh();
+                
+                // Set up auto-refresh every 30 seconds
+                setInterval(() => {
+                    this.refresh();
+                }, 30000);
+                
+                // Set up modal event listeners
+                this.setupModalListeners();
+                
+                console.log('✅ Dashboard initialized');
+            },
+
+            async loadBacklogItems() {
+                try {
+                    const response = await fetch(`${basePath}/api/backlog`);
+                    if (!response.ok) throw new Error('Failed to fetch backlog items');
+                    
+                    this.backlogItems = await response.json();
+                    this.renderKanbanBoard();
+                    this.updateMetrics();
+                } catch (error) {
+                    console.error('❌ Error loading backlog:', error);
+                    this.showError('Failed to load backlog items');
+                }
+            },
+
+            async loadNotifications() {
+                try {
+                    const response = await fetch(`${basePath}/api/notifications`);
+                    if (!response.ok) throw new Error('Failed to fetch notifications');
+                    
+                    const notifications = await response.json();
+                    this.renderNotifications(notifications);
+                } catch (error) {
+                    console.error('❌ Error loading notifications:', error);
+                }
+            },
+
+            renderKanbanBoard() {
+                const columns = {
+                    backlog: document.getElementById('backlogColumn'),
+                    development: document.getElementById('developmentColumn'), 
+                    qa: document.getElementById('qaColumn'),
+                    done: document.getElementById('doneColumn')
+                };
+
+                // Clear columns
+                Object.values(columns).forEach(col => col.innerHTML = '');
+
+                // Group items by status
+                const grouped = this.backlogItems.reduce((acc, item) => {
+                    const status = item.status === 'in_development' ? 'development' : item.status;
+                    if (!acc[status]) acc[status] = [];
+                    acc[status].push(item);
+                    return acc;
+                }, {});
+
+                // Render each group
+                Object.entries(grouped).forEach(([status, items]) => {
+                    if (columns[status]) {
+                        items.forEach(item => {
+                            columns[status].appendChild(this.createStoryCard(item, status));
+                        });
+                    }
+                });
+
+                // Update counts
+                document.getElementById('backlogCount').textContent = grouped.backlog?.length || 0;
+                document.getElementById('devCount').textContent = grouped.development?.length || 0;
+                document.getElementById('qaCount').textContent = grouped.qa?.length || 0;
+                document.getElementById('doneCount').textContent = grouped.done?.length || 0;
+            },
+
+            createStoryCard(task, type) {
+                const card = document.createElement('div');
+                card.className = 'bg-dark-700 border border-dark-600 rounded-lg p-4 hover:bg-dark-600 transition-colors cursor-pointer';
+                
+                // Add click handler to show story details
+                card.addEventListener('click', () => this.showStoryDetails(task));
+                
+                const priorityColors = { 1: 'red', 2: 'orange', 3: 'yellow', 4: 'blue', 5: 'gray' };
+                const priorityColor = priorityColors[task.priority] || 'gray';
+                
+                const startButton = type === 'development' && projectConfig.features.terminalIntegration ? `
+                    <div class="mt-3 pt-2 border-t border-dark-600">
+                        <button onclick="dashboard.launchTerminal(${task.id})" 
+                                class="w-full bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded font-medium transition-colors">
+                            <i class="fas fa-terminal mr-1"></i>Start Development
+                        </button>
+                    </div>
+                ` : '';
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-2">
+                        <h4 class="font-medium text-white text-sm leading-snug">${task.title}</h4>
+                        <div class="flex items-center space-x-1 ml-2 flex-shrink-0">
+                            <div class="w-2 h-2 bg-${priorityColor}-500 rounded-full"></div>
+                            <span class="text-xs text-gray-400">P${task.priority}</span>
+                        </div>
+                    </div>
+                    
+                    ${task.description ? `<p class="text-gray-400 text-xs mb-2 line-clamp-2">${task.description}</p>` : ''}
+                    
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-blue-500 text-white px-2 py-1 rounded">Story #${task.id}</span>
+                            <span class="text-gray-400">Value: ${task.business_value}/10</span>
+                        </div>
+                    </div>
+                    ${startButton}
+                `;
+                
+                return card;
+            },
+
+            updateMetrics() {
+                const total = this.backlogItems.length;
+                const byStatus = this.backlogItems.reduce((acc, item) => {
+                    acc[item.status] = (acc[item.status] || 0) + 1;
+                    return acc;
+                }, {});
+
+                document.getElementById('totalStories').textContent = total;
+                document.getElementById('backlogItems').textContent = byStatus.backlog || 0;
+                document.getElementById('devTasks').textContent = byStatus.in_development || 0;
+                document.getElementById('qaTasks').textContent = byStatus.qa || 0;
+                document.getElementById('completedTasks').textContent = byStatus.done || 0;
+            },
+
+            renderNotifications(notifications) {
+                const container = document.getElementById('notificationsContainer');
+                document.getElementById('notificationCount').textContent = notifications.length;
+                
+                if (notifications.length === 0) {
+                    container.innerHTML = '<div class="p-4 text-gray-400 text-center">No notifications available</div>';
+                    return;
+                }
+                
+                container.innerHTML = notifications.map(notification => `
+                    <div class="p-3 border-b border-dark-700 last:border-b-0 hover:bg-dark-700 transition-colors">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                            <div class="flex-1">
+                                <p class="text-sm text-white">${notification.change_description}</p>
+                                <div class="flex items-center justify-between mt-1">
+                                    <span class="text-xs text-gray-400">${new Date(notification.timestamp).toLocaleString()}</span>
+                                    ${notification.backlog_id ? `<span class="text-xs bg-blue-500 text-white px-2 py-1 rounded">Story #${notification.backlog_id}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            async launchTerminal(storyId) {
+                if (!projectConfig.features.terminalIntegration) {
+                    alert('Terminal integration is disabled');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${basePath}/api/dev/launch-terminal/${storyId}`, {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        console.log(`🔧 ${result.message}`);
+                        // Terminal launch confirmed - no alert needed, terminal opening is feedback enough
+                        this.refresh(); // Refresh to show new notification
+                    } else {
+                        console.error('❌ Failed to launch terminal:', result.error);
+                        alert('Failed to launch terminal: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('❌ Error launching terminal:', error);
+                    alert('Error launching terminal');
+                }
+            },
+
+            async refresh() {
+                console.log('🔄 Refreshing dashboard data...');
+                const refreshIcon = document.getElementById('refreshIcon');
+                refreshIcon.classList.add('animate-spin');
+                
+                try {
+                    await Promise.all([
+                        this.loadBacklogItems(),
+                        this.loadNotifications()
+                    ]);
+                    this.updateLastRefresh();
+                } catch (error) {
+                    console.error('❌ Error refreshing dashboard:', error);
+                } finally {
+                    refreshIcon.classList.remove('animate-spin');
+                }
+            },
+
+            updateLastRefresh() {
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+            },
+
+            setupModalListeners() {
+                const modal = document.getElementById('storyModal');
+                const closeBtn = document.getElementById('closeModal');
+                
+                closeBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+                
+                // Close modal on escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            },
+
+            showStoryDetails(story) {
+                const modal = document.getElementById('storyModal');
+                const title = document.getElementById('modalTitle');
+                const content = document.getElementById('modalContent');
+                
+                title.textContent = `Story #${story.id}: ${story.title}`;
+                
+                const priorityColors = { 1: 'red', 2: 'orange', 3: 'yellow', 4: 'blue', 5: 'gray' };
+                const priorityColor = priorityColors[story.priority] || 'gray';
+                const statusColors = { 
+                    'backlog': 'purple', 
+                    'in_development': 'blue', 
+                    'development': 'blue', 
+                    'qa': 'yellow', 
+                    'done': 'green' 
+                };
+                const statusColor = statusColors[story.status] || 'gray';
+                
+                content.innerHTML = `
+                    <div class="space-y-6">
+                        <!-- Story Metadata -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-dark-700 p-4 rounded-lg">
+                                <div class="text-sm text-gray-400 mb-1">Priority</div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-${priorityColor}-500 rounded-full"></div>
+                                    <span class="text-white font-medium">P${story.priority}</span>
+                                </div>
+                            </div>
+                            <div class="bg-dark-700 p-4 rounded-lg">
+                                <div class="text-sm text-gray-400 mb-1">Status</div>
+                                <span class="inline-flex px-3 py-1 text-sm bg-${statusColor}-500 text-white rounded-full">
+                                    ${story.status.replace('_', ' ').toUpperCase()}
+                                </span>
+                            </div>
+                            <div class="bg-dark-700 p-4 rounded-lg">
+                                <div class="text-sm text-gray-400 mb-1">Business Value</div>
+                                <div class="text-white font-medium">${story.business_value}/10</div>
+                            </div>
+                            <div class="bg-dark-700 p-4 rounded-lg">
+                                <div class="text-sm text-gray-400 mb-1">Complexity</div>
+                                <div class="text-white font-medium capitalize">${story.estimated_complexity || 'Not set'}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        ${story.description ? `
+                        <div>
+                            <h3 class="text-lg font-semibold text-white mb-3">Description</h3>
+                            <div class="bg-dark-700 p-4 rounded-lg text-gray-300 leading-relaxed">
+                                ${story.description}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Success Criteria -->
+                        ${story.success_criteria ? `
+                        <div>
+                            <h3 class="text-lg font-semibold text-white mb-3">Success Criteria</h3>
+                            <div class="bg-dark-700 p-4 rounded-lg text-gray-300 leading-relaxed whitespace-pre-line">
+                                ${story.success_criteria}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Prime Notes -->
+                        ${story.prime_notes ? `
+                        <div>
+                            <h3 class="text-lg font-semibold text-coral-500 mb-3">
+                                <i class="fas fa-brain mr-2"></i>Prime Analysis Notes
+                            </h3>
+                            <div class="bg-dark-700 p-4 rounded-lg text-gray-300 leading-relaxed whitespace-pre-line">
+                                ${story.prime_notes}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Timestamps -->
+                        <div class="border-t border-dark-600 pt-4">
+                            <div class="grid grid-cols-2 gap-4 text-sm text-gray-400">
+                                <div>
+                                    <span class="font-medium">Created:</span> 
+                                    ${story.timestamp ? new Date(story.timestamp).toLocaleString() : 'Not recorded'}
+                                </div>
+                                ${story.last_analyzed ? `
+                                <div>
+                                    <span class="font-medium">Last Analyzed:</span> 
+                                    ${new Date(story.last_analyzed).toLocaleString()}
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        ${story.status === 'in_development' || story.status === 'development' ? `
+                        <div class="border-t border-dark-600 pt-4">
+                            <button onclick="dashboard.launchTerminal(${story.id}); document.getElementById('storyModal').classList.add('hidden');" 
+                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-terminal mr-2"></i>Start Development
+                            </button>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                modal.classList.remove('hidden');
+            },
+
+            showError(message) {
+                // Simple error display - could be enhanced with toast notifications
+                console.error('Dashboard Error:', message);
+            }
+        };
+
+        // Event listeners
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            dashboard.refresh();
+        });
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            dashboard.init();
+        });
+    </script>
+</body>
+</html>
