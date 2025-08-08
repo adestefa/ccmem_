@@ -44,6 +44,19 @@ db.exec(`
     acknowledged BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (backlog_id) REFERENCES backlog(id) ON DELETE SET NULL
   );
+  
+  -- Create prime_analysis table for full analysis reports
+  CREATE TABLE IF NOT EXISTS prime_analysis (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    backlog_id INTEGER NOT NULL,
+    full_report TEXT NOT NULL,
+    risk_assessment TEXT NOT NULL,
+    recommendations TEXT NOT NULL,
+    risk_score INTEGER NOT NULL,
+    recommendation_type TEXT NOT NULL,
+    analysis_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (backlog_id) REFERENCES backlog(id) ON DELETE CASCADE
+  );
 `);
 
 // Initialize display_order for existing records
@@ -243,12 +256,36 @@ app.get('/api/dashboard', (req, res) => {
     }
     
     if (refresh_type === 'full' || refresh_type === 'kanban') {
-      // Simplified kanban for now - empty until task table exists
+      // Get stories in different phases from backlog table
+      const developmentStories = db.prepare(`
+        SELECT * FROM backlog 
+        WHERE status = 'in_development' 
+        ORDER BY display_order ASC
+      `).all();
+      
+      const queueStories = db.prepare(`
+        SELECT * FROM backlog 
+        WHERE status = 'queue' 
+        ORDER BY display_order ASC
+      `).all();
+      
+      const qaStories = db.prepare(`
+        SELECT * FROM backlog 
+        WHERE status = 'qa' 
+        ORDER BY display_order ASC
+      `).all();
+      
+      const doneStories = db.prepare(`
+        SELECT * FROM backlog 
+        WHERE status = 'done' 
+        ORDER BY display_order ASC
+      `).all();
+      
       data.kanban = {
-        queue: [],
-        development: [],
-        qa: [],
-        done: []
+        queue: queueStories,
+        development: developmentStories,
+        qa: qaStories,
+        done: doneStories
       };
     }
     
@@ -327,6 +364,229 @@ app.patch('/api/prime/notifications/acknowledge', (req, res) => {
     });
   }
 });
+
+// Prime analyze story endpoint
+app.post('/api/prime/analyze/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get backlog item
+    const backlogItem = db.prepare('SELECT * FROM backlog WHERE id = ?').get(id);
+    if (!backlogItem) {
+      return res.status(404).json({ success: false, error: 'Backlog item not found' });
+    }
+    
+    // Generate Prime analysis (mock for now - would integrate with actual MCP tools)
+    const analysis = generatePrimeAnalysis(backlogItem);
+    
+    // Save full analysis to database
+    db.prepare(`
+      INSERT INTO prime_analysis (
+        backlog_id, full_report, risk_assessment, recommendations, 
+        risk_score, recommendation_type
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      id, 
+      analysis.report, 
+      analysis.risk_assessment, 
+      analysis.recommendations,
+      analysis.risk_score,
+      analysis.recommendation
+    );
+    
+    // Update backlog item with Prime notes
+    db.prepare('UPDATE backlog SET prime_notes = ?, last_analyzed = CURRENT_TIMESTAMP WHERE id = ?')
+      .run(analysis.summary, id);
+    
+    // Log notification for tracking
+    db.prepare(`
+      INSERT INTO prime_notifications (
+        notification_type, backlog_id, change_description, user_action
+      ) VALUES (?, ?, ?, ?)
+    `).run(
+      'prime_analysis',
+      id,
+      `Prime analyzed "${backlogItem.title}" - Risk: ${analysis.risk_score}, Recommendation: ${analysis.recommendation}`,
+      'prime_analysis'
+    );
+    
+    res.json({
+      success: true,
+      analysis: {
+        report: analysis.report,
+        risk_assessment: analysis.risk_assessment,
+        recommendations: analysis.recommendations,
+        risk_score: analysis.risk_score,
+        recommendation: analysis.recommendation
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error analyzing story with Prime:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get full Prime analysis for a story
+app.get('/api/prime/analysis/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get the most recent analysis for this backlog item
+    const analysis = db.prepare(`
+      SELECT * FROM prime_analysis 
+      WHERE backlog_id = ? 
+      ORDER BY analysis_timestamp DESC 
+      LIMIT 1
+    `).get(id);
+    
+    if (!analysis) {
+      return res.status(404).json({ success: false, error: 'No Prime analysis found for this story' });
+    }
+    
+    res.json({
+      success: true,
+      analysis: {
+        full_report: analysis.full_report,
+        risk_assessment: analysis.risk_assessment,
+        recommendations: analysis.recommendations,
+        risk_score: analysis.risk_score,
+        recommendation_type: analysis.recommendation_type,
+        analysis_timestamp: analysis.analysis_timestamp
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error fetching Prime analysis:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Create story from backlog
+app.post('/api/story/create-from-backlog', (req, res) => {
+  try {
+    const { backlog_id, approved_by_prime = false } = req.body;
+    
+    // Get backlog item
+    const backlogItem = db.prepare('SELECT * FROM backlog WHERE id = ?').get(backlog_id);
+    if (!backlogItem) {
+      return res.status(404).json({ success: false, error: 'Backlog item not found' });
+    }
+    
+    // For now, just update the status to indicate it's moved to development
+    // In full implementation, this would create records in story and task tables
+    db.prepare('UPDATE backlog SET status = ? WHERE id = ?').run('in_development', backlog_id);
+    
+    // Log notification
+    db.prepare(`
+      INSERT INTO prime_notifications (
+        notification_type, backlog_id, change_description, user_action
+      ) VALUES (?, ?, ?, ?)
+    `).run(
+      'story_created',
+      backlog_id,
+      `Story "${backlogItem.title}" moved to development ${approved_by_prime ? '(Prime approved)' : ''}`,
+      'story_creation_from_backlog'
+    );
+    
+    res.json({
+      success: true,
+      message: `Story "${backlogItem.title}" moved to development`,
+      story_id: backlog_id, // In full implementation, this would be a new story ID
+      approved_by_prime
+    });
+    
+  } catch (error) {
+    console.error('Error creating story from backlog:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Prime analysis generation function
+function generatePrimeAnalysis(backlogItem) {
+  const title = backlogItem.title;
+  const description = backlogItem.description;
+  const successCriteria = backlogItem.success_criteria;
+  const complexity = backlogItem.estimated_complexity;
+  const businessValue = backlogItem.business_value;
+  
+  // Risk assessment based on keywords and complexity
+  let riskScore = 0;
+  const riskKeywords = ['database', 'delete', 'remove', 'migration', 'security', 'payment', 'authentication', 'admin'];
+  const descriptionLower = (description + ' ' + title).toLowerCase();
+  
+  riskKeywords.forEach(keyword => {
+    if (descriptionLower.includes(keyword)) riskScore += 10;
+  });
+  
+  if (complexity === 'complex') riskScore += 15;
+  if (complexity === 'high_risk') riskScore += 25;
+  
+  const riskLevel = riskScore < 25 ? 'LOW' : riskScore < 50 ? 'MEDIUM' : 'HIGH';
+  const recommendation = riskScore < 25 ? 'APPROVE' : riskScore < 50 ? 'PROCEED_WITH_CAUTION' : 'REQUIRES_REVIEW';
+  
+  const report = `## Prime's Logical Analysis
+
+**Story Assessment**: "${title}"
+
+**Business Value**: ${businessValue}/10 - ${
+    businessValue >= 8 ? 'High impact feature with significant user value' :
+    businessValue >= 6 ? 'Moderate impact with good user benefit' :
+    businessValue >= 4 ? 'Lower impact but provides incremental value' :
+    'Limited business impact, consider prioritization'
+  }
+
+**Technical Complexity**: ${complexity} - ${
+    complexity === 'simple' ? 'Straightforward implementation with minimal risk' :
+    complexity === 'moderate' ? 'Standard complexity requiring careful planning' :
+    complexity === 'complex' ? 'High complexity requiring architectural consideration' :
+    'High risk implementation requiring extensive validation'
+  }
+
+**Implementation Readiness**: ${
+    successCriteria.split('\n').length >= 3 ? 'Well-defined success criteria support clear development path' :
+    'Success criteria may need refinement for optimal execution'
+  }`;
+  
+  const riskAssessment = `Risk Level: ${riskLevel} (Score: ${riskScore})
+
+${
+    riskScore < 25 ? 'Minimal risk identified. Standard development practices sufficient.' :
+    riskScore < 50 ? 'Moderate risk detected. Enhanced testing and review recommended.' :
+    'Significant risk factors present. Comprehensive planning and validation required.'
+  }`;
+  
+  const recommendations = `**Prime Recommendation**: ${recommendation}
+
+${
+    recommendation === 'APPROVE' ? 'This story demonstrates good value-to-risk ratio and clear implementation path. Proceed with standard development workflow.' :
+    recommendation === 'PROCEED_WITH_CAUTION' ? 'Story has merit but contains risk factors. Recommend additional planning phase and enhanced QA protocols.' :
+    'Story requires careful analysis before implementation. Consider breaking into smaller, less risky components or implementing additional safeguards.'
+  }
+
+**Suggested Next Steps**:
+${recommendation === 'APPROVE' ? '• Assign to development team\n• Implement standard testing protocols\n• Monitor for typical completion blockers' :
+  recommendation === 'PROCEED_WITH_CAUTION' ? '• Conduct architecture review session\n• Implement enhanced testing strategy\n• Plan rollback procedures' :
+  '• Break story into smaller components\n• Identify risk mitigation strategies\n• Consider prototype or proof-of-concept phase'}`;
+  
+  return {
+    report,
+    risk_assessment: riskAssessment,
+    recommendations,
+    risk_score: riskScore,
+    recommendation,
+    summary: `Prime Analysis: ${riskLevel} risk, ${recommendation.toLowerCase().replace('_', ' ')} - ${businessValue}/10 business value`
+  };
+}
 
 // Serve dashboard HTML
 app.get('/', (req, res) => {
