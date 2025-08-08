@@ -13,12 +13,12 @@
                     colors: {
                         dark: {
                             50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
-                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
-                            800: '#1e293b', 900: '#0f172a', 950: '#020617'
+                            400: '#94a3b8', 500: '#64748b', 600: '#21262d', 700: '#161b22',
+                            800: '#0d1117', 900: '#0d1117', 950: '#010409'
                         },
                         coral: {
-                            400: '#ff7849', 500: '#ff6b47', 600: '#e55039', 700: '#c44569',
-                            800: '#a55eea', 900: '#8854d0'
+                            400: '#f59e0b', 500: '#d97706', 600: '#d57455', 700: '#b45309',
+                            800: '#92400e', 900: '#78350f'
                         }
                     }
                 }
@@ -50,8 +50,9 @@
                 <button id="refreshBtn" class="bg-coral-600 hover:bg-coral-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                     <i id="refreshIcon" class="fas fa-sync-alt mr-2"></i>Refresh
                 </button>
-                <div class="text-sm text-gray-400">
-                    Last updated: <span id="lastUpdated">--</span>
+                <div class="text-sm text-gray-400 text-right">
+                    <div>CCMem v3.3.0 by Satori</div>
+                    <div>Last updated: <span id="lastUpdated">--</span></div>
                 </div>
             </div>
         </div>
@@ -69,7 +70,7 @@
                 <div class="text-gray-400 text-sm">Backlog</div>
             </div>
             <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
-                <div class="text-2xl font-bold text-blue-500" id="devTasks">-</div>
+                <div class="text-2xl font-bold text-coral-500" id="devTasks">-</div>
                 <div class="text-gray-400 text-sm">In Development</div>
             </div>
             <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
@@ -100,9 +101,9 @@
                 <!-- Development Column -->
                 <div class="bg-dark-800 rounded-lg border border-dark-700">
                     <div class="p-4 border-b border-dark-700">
-                        <h3 class="font-semibold text-blue-500 flex items-center">
+                        <h3 class="font-semibold text-coral-500 flex items-center">
                             <i class="fas fa-code mr-2"></i>Development
-                            <span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded-full" id="devCount">0</span>
+                            <span class="ml-2 text-xs bg-coral-500 text-white px-2 py-1 rounded-full" id="devCount">0</span>
                         </h3>
                     </div>
                     <div class="p-4 space-y-3" id="developmentColumn"></div>
@@ -261,7 +262,7 @@
                 // Add click handler to show story details
                 card.addEventListener('click', () => this.showStoryDetails(task));
                 
-                const priorityColors = { 1: 'red', 2: 'orange', 3: 'yellow', 4: 'blue', 5: 'gray' };
+                const priorityColors = { 1: 'red', 2: 'orange', 3: 'yellow', 4: 'coral', 5: 'gray' };
                 const priorityColor = priorityColors[task.priority] || 'gray';
                 
                 const startButton = type === 'development' && projectConfig.features.terminalIntegration ? `
@@ -286,7 +287,7 @@
                     
                     <div class="flex items-center justify-between text-xs">
                         <div class="flex items-center space-x-2">
-                            <span class="bg-blue-500 text-white px-2 py-1 rounded">Story #${task.id}</span>
+                            <span class="bg-coral-500 text-white px-2 py-1 rounded">Story #${task.id}</span>
                             <span class="text-gray-400">Value: ${task.business_value}/10</span>
                         </div>
                     </div>
@@ -322,12 +323,12 @@
                 container.innerHTML = notifications.map(notification => `
                     <div class="p-3 border-b border-dark-700 last:border-b-0 hover:bg-dark-700 transition-colors">
                         <div class="flex items-start space-x-3">
-                            <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                            <i class="fas fa-info-circle text-coral-500 mt-1"></i>
                             <div class="flex-1">
                                 <p class="text-sm text-white">${notification.change_description}</p>
                                 <div class="flex items-center justify-between mt-1">
                                     <span class="text-xs text-gray-400">${new Date(notification.timestamp).toLocaleString()}</span>
-                                    ${notification.backlog_id ? `<span class="text-xs bg-blue-500 text-white px-2 py-1 rounded">Story #${notification.backlog_id}</span>` : ''}
+                                    ${notification.backlog_id ? `<span class="text-xs bg-coral-500 text-white px-2 py-1 rounded">Story #${notification.backlog_id}</span>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -414,12 +415,12 @@
                 
                 title.textContent = `Story #${story.id}: ${story.title}`;
                 
-                const priorityColors = { 1: 'red', 2: 'orange', 3: 'yellow', 4: 'blue', 5: 'gray' };
+                const priorityColors = { 1: 'red', 2: 'orange', 3: 'yellow', 4: 'coral', 5: 'gray' };
                 const priorityColor = priorityColors[story.priority] || 'gray';
                 const statusColors = { 
                     'backlog': 'purple', 
-                    'in_development': 'blue', 
-                    'development': 'blue', 
+                    'in_development': 'coral', 
+                    'development': 'coral', 
                     'qa': 'yellow', 
                     'done': 'green' 
                 };
