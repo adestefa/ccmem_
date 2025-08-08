@@ -260,6 +260,16 @@
                     'done': 'bg-green-600'
                 }[type] || 'bg-gray-600';
 
+                // Add Start button for development tasks
+                const startButton = type === 'development' ? `
+                    <div class="mt-3 pt-2 border-t border-dark-600">
+                        <button onclick="dashboard.launchTerminal(${task.id})" 
+                                class="w-full bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded font-medium transition-colors">
+                            <i class="fas fa-terminal mr-1"></i>Start Development
+                        </button>
+                    </div>
+                ` : '';
+
                 return `
                     <div class="bg-dark-700 rounded-lg p-3 border border-dark-600">
                         <div class="flex items-start justify-between mb-2">
@@ -272,6 +282,7 @@
                             <span class="text-gray-500">ID: #${task.id}</span>
                         </div>
                         ${task.prime_notes ? `<div class="text-xs text-purple-400 mt-2 italic">${task.prime_notes}</div>` : ''}
+                        ${startButton}
                     </div>
                 `;
             }
@@ -294,6 +305,33 @@
                     notification.style.opacity = '0';
                     setTimeout(() => document.body.removeChild(notification), 300);
                 }, 3000);
+            }
+
+            async launchTerminal(storyId) {
+                try {
+                    this.showNotification('Launching development terminal...', 'info');
+                    
+                    const response = await fetch(`${this.apiBase}/dev/launch-terminal/${storyId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification(`Terminal launched for Story #${storyId}`, 'success');
+                        // Show additional info about the project directory
+                        setTimeout(() => {
+                            this.showNotification(`Working directory: ${result.project_directory}`, 'info');
+                        }, 1000);
+                    } else {
+                        throw new Error(result.error);
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to launch terminal:', error);
+                    this.showNotification('Failed to launch terminal: ' + error.message, 'error');
+                }
             }
 
             startAutoRefresh() {

@@ -1,6 +1,6 @@
 {
   "name": "ccmem",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Claude Code Memory Server",
   "type": "module",
   "main": "main.ts",

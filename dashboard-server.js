@@ -6,6 +6,7 @@ import path from 'path';
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -587,6 +588,55 @@ ${recommendation === 'APPROVE' ? '• Assign to development team\n• Implement 
     summary: `Prime Analysis: ${riskLevel} risk, ${recommendation.toLowerCase().replace('_', ' ')} - ${businessValue}/10 business value`
   };
 }
+
+// Launch Alacritty terminal for development
+app.post('/api/dev/launch-terminal/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get backlog item for context
+    const backlogItem = db.prepare('SELECT * FROM backlog WHERE id = ?').get(id);
+    if (!backlogItem) {
+      return res.status(404).json({ success: false, error: 'Story not found' });
+    }
+    
+    // Get current working directory (project root)
+    const projectDir = process.cwd();
+    
+    // Launch Alacritty terminal in project directory
+    const terminal = spawn('alacritty', ['--working-directory', projectDir], {
+      detached: true,
+      stdio: 'ignore'
+    });
+    
+    terminal.unref(); // Allow parent process to exit independently
+    
+    // Log notification
+    db.prepare(`
+      INSERT INTO prime_notifications (
+        notification_type, backlog_id, change_description, user_action
+      ) VALUES (?, ?, ?, ?)
+    `).run(
+      'dev_terminal_launched',
+      id,
+      `Development terminal launched for "${backlogItem.title}" (Story #${id})`,
+      'terminal_launch'
+    );
+    
+    res.json({
+      success: true,
+      message: `Terminal launched for Story #${id}: ${backlogItem.title}`,
+      project_directory: projectDir
+    });
+    
+  } catch (error) {
+    console.error('Error launching terminal:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
 
 // Serve dashboard HTML
 app.get('/', (req, res) => {

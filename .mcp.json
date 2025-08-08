@@ -1,5 +1,20 @@
 {
     "mcpServers": {
+        "context7": {
+            "command": "npx",
+            "args": ["-y", "@upstash/context7-mcp@latest"],
+            "description": "Context7 MCP server for enhanced context management"
+        },
+        "serena": {
+            "command": "uvx",
+            "args": ["--from", "git+https://github.com/oraios/serena", "serena-mcp-server", "--context", "ide-assistant", "--project", "/Users/corelogic/satori-dev/ccmem"],
+            "description": "Serena MCP server for enhanced code analysis"
+        },
+        "playwright": {
+            "command": "npx",
+            "args": ["@playwright/mcp@latest"],
+            "description": "Playwright MCP for browser automation and testing"
+        },
         "ccmem": {
             "command": "npx",
             "args": ["tsx", "/Users/corelogic/satori-dev/ccmem/main.ts"],
